@@ -1,0 +1,43 @@
+runtime: go
+api_version: go1.9
+
+handlers:
+- url: /homeschema
+  script: _go_app
+  login: required
+- url: /memberschema
+  script: _go_app
+  login: required
+- url: /adminschema
+  script: _go_app
+  login: required
+- url: /homequery
+  script: _go_app
+  login: required
+- url: /memberquery
+  script: _go_app
+  login: required
+- url: /adminquery
+  script: _go_app
+  login: required
+- url: /dailycron
+  script: _go_app
+  login: admin
+- url: /fr/
+  static_files: clientauthbuild/index.html
+  upload: clientauthbuild/index.html
+  login: required
+- url: /fr/static
+  static_dir: clientauthbuild/static
+  login: required
+- url: /
+  static_files: clienthomebuild/index.html
+  upload: clienthomebuild/index.html
+- url: /static
+  static_dir: clienthomebuild/static
+
+env_variables:
+  DEFAULT_SYSTEM_EMAIL: 'noreply@friendlyreservations.com'
+  DEFAULT_SYSTEM_NAME: 'Friendly Reservations'
+  ALLOW_NEW_PROPERTY: 'true'
+

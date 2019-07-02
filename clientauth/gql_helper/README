@@ -1,0 +1,5 @@
+Run:
+node getschema.js
+
+Then move fragmentTypes.json to src directory.
+
