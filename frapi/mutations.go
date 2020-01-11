@@ -11,9 +11,7 @@ import (
 	"sync"
 
 	"github.com/bjorge/friendlyreservations/models"
-
-	"github.com/bjorge/friendlyreservations/persist"
-	"github.com/bjorge/friendlyreservations/utilities"
+	"github.com/bjorge/friendlyreservations/platform"
 )
 
 const emailMapCacheKeyName = "EmailMap"
@@ -27,13 +25,13 @@ type DuplicateDetectionEvent interface {
 func (r *Resolver) LogoutURL(ctx context.Context, args *struct {
 	Dest string
 }) (*string, error) {
-	url, err := utilities.LogoutURL(ctx, args.Dest)
+	url, err := LogoutURL(ctx, args.Dest)
 	return &url, err
 }
 
-func emailMapFromGob(gobData []byte) (map[string]persist.PersistedEmail, error) {
+func emailMapFromGob(gobData []byte) (map[string]platform.PersistedEmail, error) {
 	dec := gob.NewDecoder(bytes.NewBuffer(gobData))
-	emailMap := make(map[string]persist.PersistedEmail)
+	emailMap := make(map[string]platform.PersistedEmail)
 	err := dec.Decode(&emailMap)
 	if err != nil {
 		return nil, err
@@ -41,7 +39,7 @@ func emailMapFromGob(gobData []byte) (map[string]persist.PersistedEmail, error) 
 	return emailMap, nil
 }
 
-func gobFromEmailMap(emailMap map[string]persist.PersistedEmail) ([]byte, error) {
+func gobFromEmailMap(emailMap map[string]platform.PersistedEmail) ([]byte, error) {
 	stream := &bytes.Buffer{}
 	en := gob.NewEncoder(stream)
 	err := en.Encode(emailMap)
@@ -95,7 +93,7 @@ func currentBaseProperty(ctx context.Context, email string, propertyID string) (
 	}
 	cachedVersion, readData, cacheError := persistedVersionedEvents.CacheRead(ctx, propertyID, cacheReadKeys)
 	if cacheError != nil {
-		utilities.LogWarningf(ctx, "cache error: %+v", cacheError)
+		Logger.LogWarningf("cache error: %+v", cacheError)
 	}
 	cacheUpToDate := false
 	if cacheError == nil && int32(cachedVersion) == propertyResolver.EventVersion() {
@@ -109,7 +107,7 @@ func currentBaseProperty(ctx context.Context, email string, propertyID string) (
 	if readValue, ok := readData[emailMapCacheKeyName]; ok && cacheUpToDate {
 		property.EmailMap, cacheError = emailMapFromGob(readValue)
 		if cacheError != nil {
-			utilities.LogWarningf(ctx, "cache email map from gob error: %+v", cacheError)
+			Logger.LogWarningf("cache email map from gob error: %+v", cacheError)
 		}
 	}
 
@@ -122,7 +120,7 @@ func currentBaseProperty(ctx context.Context, email string, propertyID string) (
 		// cache the email map
 		gobData, cacheError := gobFromEmailMap(property.EmailMap)
 		if cacheError != nil {
-			utilities.LogWarningf(ctx, "cache gob from email map error: %+v", cacheError)
+			Logger.LogWarningf("cache gob from email map error: %+v", cacheError)
 		} else {
 			persistedVersionedEvents.CacheWrite(ctx, propertyID, int(propertyResolver.EventVersion()), emailMapCacheKeyName, gobData)
 		}
@@ -134,7 +132,7 @@ func currentBaseProperty(ctx context.Context, email string, propertyID string) (
 		if readValue, ok := readData[string(rollup)]; ok && cacheUpToDate {
 			property.Rollups[rollup], cacheError = rollupsFromGob(readValue)
 			if cacheError != nil {
-				utilities.LogWarningf(ctx, "cache rollups from gob error: %+v", cacheError)
+				Logger.LogWarningf("cache rollups from gob error: %+v", cacheError)
 			}
 		}
 		// initialize the rollup mutex
@@ -146,7 +144,7 @@ func currentBaseProperty(ctx context.Context, email string, propertyID string) (
 
 func currentProperty(ctx context.Context, propertyID string) (*PropertyResolver, *UserResolver, error) {
 
-	u := utilities.GetUser(ctx)
+	u := GetUser(ctx)
 	if u == nil {
 		return nil, nil, errors.New("user not logged in")
 	}
@@ -211,9 +209,9 @@ func isDuplicate(ctx context.Context, request DuplicateDetectionEvent, property 
 }
 
 func commitChanges(ctx context.Context, propertyID string, eventVersion int32,
-	events ...persist.VersionedEvent) (*PropertyResolver, error) {
+	events ...platform.VersionedEvent) (*PropertyResolver, error) {
 
-	eventList := []persist.VersionedEvent{}
+	eventList := []platform.VersionedEvent{}
 	for _, event := range events {
 		eventList = append(eventList, event)
 	}

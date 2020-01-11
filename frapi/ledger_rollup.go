@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // LedgerRollup is the rollup record for ledgers, exported for memcache
@@ -157,7 +156,7 @@ func (r *PropertyResolver) rollupLedgers() {
 		}
 		cacheError := r.cacheRollup(ledgerRollupType)
 		if cacheError != nil {
-			utilities.LogWarningf(r.ctx, "cache write ledger rollups error: %+v", cacheError)
+			Logger.LogWarningf("cache write ledger rollups error: %+v", cacheError)
 		}
 	}
 }

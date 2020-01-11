@@ -2,7 +2,6 @@ package frapi
 
 import (
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // MembershipState is member's state for a particular membership
@@ -89,7 +88,7 @@ func (r *PropertyResolver) rollupMembershipStatus() {
 		}
 		cacheError := r.cacheRollup(membershipStatusRollupType)
 		if cacheError != nil {
-			utilities.LogWarningf(r.ctx, "cache write membership rollups error: %+v", cacheError)
+			Logger.LogWarningf("cache write membership rollups error: %+v", cacheError)
 		}
 	}
 }

@@ -2,7 +2,6 @@ package frapi
 
 import (
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // NotificationRollup is internal structure to hold reservation information for resolvers
@@ -59,7 +58,7 @@ func (r *PropertyResolver) rollupNotifications() {
 		}
 		cacheError := r.cacheRollup(notificationRollupType)
 		if cacheError != nil {
-			utilities.LogWarningf(r.ctx, "cache write notification rollups error: %+v", cacheError)
+			Logger.LogWarningf("cache write notification rollups error: %+v", cacheError)
 		}
 	}
 }

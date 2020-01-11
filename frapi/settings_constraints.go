@@ -105,18 +105,18 @@ func (r *UpdateSettingsConstraints) AllowNewProperty() bool {
 	}
 
 	// check that a user is logged in
-	u := utilities.GetUser(r.ctx)
+	u := GetUser(r.ctx)
 	if u == nil {
 		return false
 	}
 
 	// get all the properties
 	emailRecords, err := persistedEmailStore.GetPropertiesByEmail(r.ctx, u.Email)
-	utilities.DebugLog(r.ctx, "User %+v has %+v properties", u.Email, len(emailRecords))
+	Logger.LogDebugf("User %+v has %+v properties", u.Email, len(emailRecords))
 
 	if err == nil {
 		if len(emailRecords) >= 5 {
-			utilities.DebugLog(r.ctx, "Create new property not allowed since user %+v in too many properties", u.Email)
+			Logger.LogDebugf("Create new property not allowed since user %+v in too many properties", u.Email)
 			return false
 		}
 	}

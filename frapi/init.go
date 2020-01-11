@@ -4,7 +4,11 @@ import (
 	"encoding/gob"
 
 	"github.com/bjorge/friendlyreservations/persist"
+	"github.com/bjorge/friendlyreservations/platform"
 )
+
+// Logger is the logger for the platform implementation
+var Logger platform.Logger
 
 var persistedEmailStore = persist.NewPersistedEmailStore(false)
 var persistedVersionedEvents = persist.NewPersistedVersionedEvents(false)

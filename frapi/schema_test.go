@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bjorge/friendlyreservations/utilities"
 	"github.com/graph-gophers/graphql-go/gqltesting"
 
 	"github.com/graph-gophers/graphql-go"
@@ -31,7 +30,6 @@ func (r *helloWorldResolver2) Hello(ctx context.Context) (string, error) {
 
 // TestHelloWorld just checks that the basic graphql engine is working
 func TestHelloWorld(t *testing.T) {
-	utilities.SetTestingNow()
 
 	gqltesting.RunTests(t, []*gqltesting.Test{
 		{

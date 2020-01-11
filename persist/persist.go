@@ -11,30 +11,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bjorge/friendlyreservations/platform"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/memcache"
-
-	"google.golang.org/appengine/log"
 )
 
-// VersionedEvent must be implemented by all event objects that are persisted
-type VersionedEvent interface {
-	GetEventVersion() int
-	SetEventVersion(Version int)
-}
-
-// PersistedVersionedEvents is the interface for managing a property
-type PersistedVersionedEvents interface {
-	CreateProperty(ctx context.Context, propertyID string, events []VersionedEvent, persistedPropertyList PersistedPropertyList, nextPropertyListIndex int) (int, error)
-	NewPropertyEvents(ctx context.Context, propertyID string, transactionKey int, events []VersionedEvent, inTransaction bool) (int, error)
-	GetNextEventID(ctx context.Context, propertyID string, inTransaction bool) (int, error)
-	GetEvents(ctx context.Context, propertyID string) ([]VersionedEvent, error)
-	DeleteProperty(ctx context.Context, propertyID string, persistedPropertyList PersistedPropertyList) error
-	NumRecords(ctx context.Context, propertyID string) (int, error)
-	CacheWrite(ctx context.Context, propertyID string, version int, key string, value []byte) error
-	CacheRead(ctx context.Context, propertyID string, keys []string) (int, map[string][]byte, error)
-	CacheDelete(ctx context.Context, propertyID string, key string) error
-}
+var logging = &commonLogImpl{}
 
 type cacheRecord struct {
 	Version    int
@@ -71,7 +53,7 @@ type unitTestImpl struct {
 }
 
 // NewPersistedVersionedEvents is the factory method to create a persisted events store
-func NewPersistedVersionedEvents(unitTest bool) PersistedVersionedEvents {
+func NewPersistedVersionedEvents(unitTest bool) platform.PersistedVersionedEvents {
 	if unitTest {
 		return &unitTestImpl{Events: []byte{}, Cache: make(map[string]cacheRecord)}
 	}
@@ -129,7 +111,7 @@ func (r *unitTestImpl) CacheRead(ctx context.Context, propertyID string, keys []
 	return version, data[version], nil
 }
 
-func (r *unitTestImpl) CreateProperty(ctx context.Context, propertyID string, events []VersionedEvent, persistedPropertyList PersistedPropertyList, nextPropertyListIndex int) (int, error) {
+func (r *unitTestImpl) CreateProperty(ctx context.Context, propertyID string, events []platform.VersionedEvent, persistedPropertyList platform.PersistedPropertyList, nextPropertyListIndex int) (int, error) {
 	// BUG(bjorge): check that transactionIndex is correct
 	if persistedPropertyList != nil {
 		err := persistedPropertyList.CreateProperty(ctx, propertyID, nextPropertyListIndex)
@@ -137,7 +119,7 @@ func (r *unitTestImpl) CreateProperty(ctx context.Context, propertyID string, ev
 			return 0, err
 		}
 	}
-	records := []VersionedEvent{}
+	records := []platform.VersionedEvent{}
 	for index, event := range events {
 		event.SetEventVersion(index)
 		records = append(records, event)
@@ -152,7 +134,7 @@ func (r *unitTestImpl) CreateProperty(ctx context.Context, propertyID string, ev
 	return len(events), nil
 }
 
-func (r *unitTestImpl) DeleteProperty(ctx context.Context, propertyID string, persistedPropertyList PersistedPropertyList) error {
+func (r *unitTestImpl) DeleteProperty(ctx context.Context, propertyID string, persistedPropertyList platform.PersistedPropertyList) error {
 	if persistedPropertyList != nil {
 		err := persistedPropertyList.DeleteProperty(ctx, propertyID)
 		if err != nil {
@@ -162,9 +144,9 @@ func (r *unitTestImpl) DeleteProperty(ctx context.Context, propertyID string, pe
 	return nil
 }
 
-func (r *unitTestImpl) NewPropertyEvents(ctx context.Context, propertyID string, transactionKey int, events []VersionedEvent, inTransaction bool) (int, error) {
+func (r *unitTestImpl) NewPropertyEvents(ctx context.Context, propertyID string, transactionKey int, events []platform.VersionedEvent, inTransaction bool) (int, error) {
 	dec := gob.NewDecoder(bytes.NewBuffer(r.Events))
-	records := []VersionedEvent{}
+	records := []platform.VersionedEvent{}
 	err := dec.Decode(&records)
 	if err != nil {
 		return -1, err
@@ -191,7 +173,7 @@ func (r *unitTestImpl) NewPropertyEvents(ctx context.Context, propertyID string,
 }
 func (r *unitTestImpl) GetNextEventID(ctx context.Context, propertyID string, inTransaction bool) (int, error) {
 	dec := gob.NewDecoder(bytes.NewBuffer(r.Events))
-	records := []VersionedEvent{}
+	records := []platform.VersionedEvent{}
 	err := dec.Decode(&records)
 	if err != nil {
 		return -1, err
@@ -201,7 +183,7 @@ func (r *unitTestImpl) GetNextEventID(ctx context.Context, propertyID string, in
 }
 func (r *unitTestImpl) NumRecords(ctx context.Context, propertyID string) (int, error) {
 	dec := gob.NewDecoder(bytes.NewBuffer(r.Events))
-	records := []VersionedEvent{}
+	records := []platform.VersionedEvent{}
 	err := dec.Decode(&records)
 	if err != nil {
 		return -1, err
@@ -210,9 +192,9 @@ func (r *unitTestImpl) NumRecords(ctx context.Context, propertyID string) (int, 
 	return len(records), nil
 }
 
-func eventsFromGob(gobData []byte) ([]VersionedEvent, error) {
+func eventsFromGob(gobData []byte) ([]platform.VersionedEvent, error) {
 	dec := gob.NewDecoder(bytes.NewBuffer(gobData))
-	events := []VersionedEvent{}
+	events := []platform.VersionedEvent{}
 	err := dec.Decode(&events)
 	if err != nil {
 		return nil, err
@@ -220,7 +202,7 @@ func eventsFromGob(gobData []byte) ([]VersionedEvent, error) {
 	return events, nil
 }
 
-func gobFromEvents(events []VersionedEvent) ([]byte, error) {
+func gobFromEvents(events []platform.VersionedEvent) ([]byte, error) {
 	stream := &bytes.Buffer{}
 	en := gob.NewEncoder(stream)
 	err := en.Encode(events)
@@ -230,12 +212,12 @@ func gobFromEvents(events []VersionedEvent) ([]byte, error) {
 	return stream.Bytes(), err
 }
 
-func (r *unitTestImpl) GetEvents(ctx context.Context, propertyID string) ([]VersionedEvent, error) {
+func (r *unitTestImpl) GetEvents(ctx context.Context, propertyID string) ([]platform.VersionedEvent, error) {
 
 	// get events from "cache"
 	_, readData, err := r.CacheRead(ctx, propertyID, []string{versionedEventsCacheKeyName, currentVersionCacheKeyName})
 	if err != nil {
-		log.Debugf(ctx, "Error reading from cache: %+v", err)
+		logging.LogDebugf("Error reading from cache: %+v", err)
 	} else {
 		if _, ok := readData[currentVersionCacheKeyName]; ok {
 			// good, we have the current version
@@ -243,7 +225,7 @@ func (r *unitTestImpl) GetEvents(ctx context.Context, propertyID string) ([]Vers
 				// and we have events at the current version
 				events, err := eventsFromGob(readValue)
 				if err != nil {
-					log.Debugf(ctx, "Error converting cached gob to events: %+v", err)
+					logging.LogDebugf("Error converting cached gob to events: %+v", err)
 				}
 				return events, nil
 			}
@@ -254,7 +236,7 @@ func (r *unitTestImpl) GetEvents(ctx context.Context, propertyID string) ([]Vers
 	// get events from "db"
 	events, err := eventsFromGob(r.Events)
 	if err != nil {
-		log.Debugf(ctx, "Error converting db gob to events: %+v", err)
+		logging.LogDebugf("Error converting db gob to events: %+v", err)
 		return nil, err
 	}
 
@@ -263,7 +245,7 @@ func (r *unitTestImpl) GetEvents(ctx context.Context, propertyID string) ([]Vers
 	err = r.CacheWrite(ctx, propertyID, events[len(events)-1].GetEventVersion(), versionedEventsCacheKeyName, gobData)
 	err = r.CacheWrite(ctx, propertyID, events[len(events)-1].GetEventVersion(), currentVersionCacheKeyName, []byte{})
 	if err != nil {
-		log.Debugf(ctx, "Error writing gob to cache: %+v", err)
+		logging.LogDebugf("Error writing gob to cache: %+v", err)
 	}
 	return events, nil
 
@@ -295,7 +277,7 @@ func (r *dataStoreImpl) CacheWrite(ctx context.Context, propertyID string, versi
 
 	cacheKey := generateCacheKey(propertyID, key)
 	record := cacheRecord{Version: version, Value: value, Compressed: compressed}
-	log.Debugf(ctx, "Write to cache propertyID: %+v, version: %+v, key: %+v, size %+v", propertyID, version, cacheKey, len(value))
+	logging.LogDebugf("Write to cache propertyID: %+v, version: %+v, key: %+v, size %+v", propertyID, version, cacheKey, len(value))
 
 	gobData, err := gobFromCacheRecord(&record)
 	if err != nil {
@@ -316,7 +298,7 @@ func (r *dataStoreImpl) CacheRead(ctx context.Context, propertyID string, keys [
 	for _, key := range keys {
 		cacheKey := generateCacheKey(propertyID, key)
 		cacheKeys = append(cacheKeys, cacheKey)
-		//log.Debugf(ctx, "Attempt Read from cache propertyID: %+v, key: %+v", propertyID, cacheKey)
+		//logging.LogDebugf("Attempt Read from cache propertyID: %+v, key: %+v", propertyID, cacheKey)
 
 	}
 
@@ -341,7 +323,7 @@ func (r *dataStoreImpl) CacheRead(ctx context.Context, propertyID string, keys [
 
 		record, err := cacheRecordFromGob(item.Value)
 		if err != nil {
-			log.Debugf(ctx, "Error getting value from memcache for key %+v", key)
+			logging.LogDebugf("Error getting value from memcache for key %+v", key)
 			continue
 		}
 
@@ -383,12 +365,12 @@ func (r *dataStoreImpl) CacheRead(ctx context.Context, propertyID string, keys [
 		keysRead = append(keysRead, keyRead)
 	}
 
-	log.Debugf(ctx, "Read from cache propertyID: %+v, version: %+v, keys read: %+v", propertyID, version, keysRead)
+	logging.LogDebugf("Read from cache propertyID: %+v, version: %+v, keys read: %+v", propertyID, version, keysRead)
 
 	return version, data[version], nil
 }
 
-func (r *dataStoreImpl) CreateProperty(ctx context.Context, propertyID string, events []VersionedEvent, persistedPropertyList PersistedPropertyList, nextPropertyListIndex int) (int, error) {
+func (r *dataStoreImpl) CreateProperty(ctx context.Context, propertyID string, events []platform.VersionedEvent, persistedPropertyList platform.PersistedPropertyList, nextPropertyListIndex int) (int, error) {
 
 	opts := &datastore.TransactionOptions{XG: true}
 	err := datastore.RunInTransaction(ctx, func(ctx context.Context) error {
@@ -408,7 +390,7 @@ func (r *dataStoreImpl) CreateProperty(ctx context.Context, propertyID string, e
 
 }
 
-func (r *dataStoreImpl) DeleteProperty(ctx context.Context, propertyID string, persistedPropertyList PersistedPropertyList) error {
+func (r *dataStoreImpl) DeleteProperty(ctx context.Context, propertyID string, persistedPropertyList platform.PersistedPropertyList) error {
 
 	opts := &datastore.TransactionOptions{XG: true}
 	err := datastore.RunInTransaction(ctx, func(ctx context.Context) error {
@@ -449,7 +431,7 @@ func (r *dataStoreImpl) DeleteProperty(ctx context.Context, propertyID string, p
 		// also remove from memcache
 		cacheError := r.CacheDelete(ctx, propertyID, currentVersionCacheKeyName)
 		if cacheError != nil {
-			log.Warningf(ctx, "could not delete memcache key for propertyID: %+v", propertyID)
+			logging.LogWarningf("could not delete memcache key for propertyID: %+v", propertyID)
 		}
 
 		return err1
@@ -461,7 +443,7 @@ func (r *dataStoreImpl) DeleteProperty(ctx context.Context, propertyID string, p
 
 }
 
-func eventsToEntity(ctx context.Context, propertyID string, events []VersionedEvent, version int) (*datastore.Key, *PersistedPropertyEvents, int, error) {
+func eventsToEntity(ctx context.Context, propertyID string, events []platform.VersionedEvent, version int) (*datastore.Key, *PersistedPropertyEvents, int, error) {
 	// add the next events to an array
 	nextVersion := version
 	for _, iface := range events {
@@ -503,7 +485,7 @@ func eventsToEntity(ctx context.Context, propertyID string, events []VersionedEv
 }
 
 // NewPropertyEvents returns next transaction key or error
-func (r *dataStoreImpl) NewPropertyEvents(ctx context.Context, propertyID string, transactionKey int, events []VersionedEvent, inTransaction bool) (int, error) {
+func (r *dataStoreImpl) NewPropertyEvents(ctx context.Context, propertyID string, transactionKey int, events []platform.VersionedEvent, inTransaction bool) (int, error) {
 
 	eventsKey, eventsEntity, nextVersion, err := eventsToEntity(ctx, propertyID, events, transactionKey)
 	if err != nil {
@@ -544,7 +526,7 @@ func (r *dataStoreImpl) NewPropertyEvents(ctx context.Context, propertyID string
 
 			cacheError := r.CacheWrite(ctx, propertyID, nextVersion-1, currentVersionCacheKeyName, []byte{})
 			if cacheError != nil {
-				log.Warningf(ctx, "could not store current version to memcache")
+				logging.LogWarningf("could not store current version to memcache")
 			}
 			return err1
 		}, opts)
@@ -812,10 +794,10 @@ func (r *dataStoreImpl) NumRecords(ctx context.Context, propertyID string) (int,
 
 }
 
-func eventsFromEntities(entities []PersistedPropertyEvents) ([]VersionedEvent, error) {
+func eventsFromEntities(entities []PersistedPropertyEvents) ([]platform.VersionedEvent, error) {
 
 	// put events into a map to ensure no duplicates
-	eventsMap := make(map[int]VersionedEvent)
+	eventsMap := make(map[int]platform.VersionedEvent)
 	for _, eventsEntity := range entities {
 		if eventsEntity.Type == 1 {
 
@@ -828,7 +810,7 @@ func eventsFromEntities(entities []PersistedPropertyEvents) ([]VersionedEvent, e
 					}
 					defer zlibReader.Close()
 					dec := gob.NewDecoder(zlibReader)
-					events := []VersionedEvent{}
+					events := []platform.VersionedEvent{}
 					err = dec.Decode(&events)
 					if err != nil {
 						return err
@@ -845,7 +827,7 @@ func eventsFromEntities(entities []PersistedPropertyEvents) ([]VersionedEvent, e
 				}
 			} else {
 				dec := gob.NewDecoder(bytes.NewBuffer(eventsEntity.Events))
-				events := []VersionedEvent{}
+				events := []platform.VersionedEvent{}
 				err := dec.Decode(&events)
 				if err != nil {
 					return nil, err
@@ -863,7 +845,7 @@ func eventsFromEntities(entities []PersistedPropertyEvents) ([]VersionedEvent, e
 			}
 
 			for _, event := range entityEvents {
-				versionedEvent, ok := event.Value.(VersionedEvent)
+				versionedEvent, ok := event.Value.(platform.VersionedEvent)
 				if ok {
 					eventsMap[versionedEvent.GetEventVersion()] = versionedEvent
 				}
@@ -873,7 +855,7 @@ func eventsFromEntities(entities []PersistedPropertyEvents) ([]VersionedEvent, e
 	}
 
 	// get events from map
-	events := []VersionedEvent{}
+	events := []platform.VersionedEvent{}
 	for _, event := range eventsMap {
 		events = append(events, event)
 	}
@@ -886,18 +868,18 @@ func eventsFromEntities(entities []PersistedPropertyEvents) ([]VersionedEvent, e
 	return events, nil
 }
 
-func (r *dataStoreImpl) GetEvents(ctx context.Context, propertyID string) ([]VersionedEvent, error) {
+func (r *dataStoreImpl) GetEvents(ctx context.Context, propertyID string) ([]platform.VersionedEvent, error) {
 
 	// get events from memcache
 	_, readData, err := r.CacheRead(ctx, propertyID, []string{versionedEventsCacheKeyName, currentVersionCacheKeyName})
 	if err != nil {
-		log.Warningf(ctx, "Error reading from cache: %+v", err)
+		logging.LogWarningf("Error reading from cache: %+v", err)
 	} else {
 		if _, ok := readData[currentVersionCacheKeyName]; ok {
 			if readValue, ok := readData[versionedEventsCacheKeyName]; ok {
 				events, err := eventsFromGob(readValue)
 				if err != nil {
-					log.Warningf(ctx, "Error converting cached gob to events: %+v", err)
+					logging.LogWarningf("Error converting cached gob to events: %+v", err)
 				}
 				return events, nil
 			}
@@ -913,7 +895,7 @@ func (r *dataStoreImpl) GetEvents(ctx context.Context, propertyID string) ([]Ver
 	persistedPropertyEventsKind := "Y_EVENTS_KIND_" + propertyID
 
 	//entities := []PersistedPropertyEvents{}
-	events := []VersionedEvent{}
+	events := []platform.VersionedEvent{}
 	opts := &datastore.TransactionOptions{XG: true}
 	err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
 		entities := []PersistedPropertyEvents{}
@@ -925,7 +907,7 @@ func (r *dataStoreImpl) GetEvents(ctx context.Context, propertyID string) ([]Ver
 			if err1 == datastore.Done {
 				err1 = nil
 				if len(entities) == 0 {
-					log.Warningf(ctx, "non-existant property record requested: %+v", propertyID)
+					logging.LogWarningf("non-existant property record requested: %+v", propertyID)
 					return fmt.Errorf("no records found for id %+v", propertyID)
 				}
 
@@ -934,23 +916,23 @@ func (r *dataStoreImpl) GetEvents(ctx context.Context, propertyID string) ([]Ver
 					return err1
 				}
 				if len(events) != events[len(events)-1].GetEventVersion()+1 {
-					log.Errorf(ctx, "number of events (%+v) does not match last version + 1 (%+v",
+					logging.LogErrorf("number of events (%+v) does not match last version + 1 (%+v",
 						len(events), events[len(events)-1].GetEventVersion()+1)
 				}
 
 				// ok great we got events, now write back to cache in this transaction
 				gobData, cacheError := gobFromEvents(events)
 				if cacheError != nil {
-					log.Errorf(ctx, "Error getting gob from events: %+v", cacheError)
+					logging.LogErrorf("Error getting gob from events: %+v", cacheError)
 					break
 				}
 				cacheError = r.CacheWrite(ctx, propertyID, events[len(events)-1].GetEventVersion(), versionedEventsCacheKeyName, gobData)
 				if cacheError != nil {
-					log.Errorf(ctx, "Error writing events to cache: %+v", cacheError)
+					logging.LogErrorf("Error writing events to cache: %+v", cacheError)
 				}
 				cacheError = r.CacheWrite(ctx, propertyID, events[len(events)-1].GetEventVersion(), currentVersionCacheKeyName, []byte{})
 				if cacheError != nil {
-					log.Errorf(ctx, "Error writing current version to cache: %+v", cacheError)
+					logging.LogErrorf("Error writing current version to cache: %+v", cacheError)
 				}
 				break
 			}
@@ -968,7 +950,7 @@ func (r *dataStoreImpl) GetEvents(ctx context.Context, propertyID string) ([]Ver
 	return events, nil
 }
 
-func (r *dataStoreImpl) getEventsInSet(ctx context.Context, propertyID string, keys []*datastore.Key) ([]VersionedEvent, error) {
+func (r *dataStoreImpl) getEventsInSet(ctx context.Context, propertyID string, keys []*datastore.Key) ([]platform.VersionedEvent, error) {
 
 	// TODO: get records from memcache
 	entities := make([]PersistedPropertyEvents, len(keys))
@@ -978,7 +960,7 @@ func (r *dataStoreImpl) getEventsInSet(ctx context.Context, propertyID string, k
 	}
 
 	if len(entities) == 0 {
-		log.Warningf(ctx, "non-existant property record requested: %+v", propertyID)
+		logging.LogWarningf("non-existant property record requested: %+v", propertyID)
 		return nil, fmt.Errorf("no records found for id %+v", propertyID)
 	}
 

@@ -7,8 +7,6 @@ import (
 	"strconv"
 
 	"github.com/bjorge/friendlyreservations/frdate"
-
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 const settingsGQL = `
@@ -87,7 +85,7 @@ const (
 // Currency method for GQL call
 func (r *SettingsResolver) Currency(ctx context.Context, args *struct{ Format currencyFormat }) (string, error) {
 
-	utilities.DebugLog(ctx, "currency format: %+v", args.Format)
+	Logger.LogDebugf("currency format: %+v", args.Format)
 
 	if args.Format == "" {
 		args.Format = acronym

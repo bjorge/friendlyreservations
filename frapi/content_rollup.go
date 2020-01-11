@@ -2,7 +2,6 @@ package frapi
 
 import (
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // ContentRollup is the rollup record for (html) content, exported for memcache
@@ -36,7 +35,7 @@ func (r *PropertyResolver) rollupContent() {
 		}
 		cacheError := r.cacheRollup(contentsRollupType)
 		if cacheError != nil {
-			utilities.LogWarningf(r.ctx, "cache write content rollups error: %+v", cacheError)
+			Logger.LogWarningf("cache write content rollups error: %+v", cacheError)
 		}
 	}
 

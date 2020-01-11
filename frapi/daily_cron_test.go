@@ -12,7 +12,7 @@ import (
 
 func TestDailyCronNotifications(t *testing.T) {
 	_, ctx, resolver, me, _ := initAndCreateTestProperty(context.Background(), t)
-	utilities.DebugLog(ctx, "testing")
+	Logger.LogDebugf("testing")
 
 	// now run the cron job - nothing should happen because balance not negative
 	if err := DailyCron(ctx); err != nil {
@@ -96,7 +96,7 @@ func TestDailyCronNotifications(t *testing.T) {
 
 func TestDailyCronTrialExpiration(t *testing.T) {
 	_, ctx, resolver, _, _ := initAndCreateTestProperty(context.Background(), t)
-	utilities.DebugLog(ctx, "testing trial expiration")
+	Logger.LogDebugf("testing trial expiration")
 
 	// now run the cron job - nothing should happen because trial not turned on
 	t.Logf("run cron with defaults")

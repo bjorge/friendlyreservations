@@ -2,7 +2,6 @@ package frapi
 
 import (
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // UserRollup is the user event rollup structure
@@ -101,7 +100,7 @@ func (r *PropertyResolver) rollupUsers() {
 		}
 		cacheError := r.cacheRollup(userRollupType)
 		if cacheError != nil {
-			utilities.LogWarningf(r.ctx, "cache write user rollups error: %+v", cacheError)
+			Logger.LogWarningf("cache write user rollups error: %+v", cacheError)
 		}
 	}
 }

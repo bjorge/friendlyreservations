@@ -22,18 +22,18 @@ const (
 func sendEmail(ctx context.Context, property *PropertyResolver, notification *NotificationResolver) error {
 
 	if !notification.rollup.Input.EmailSent {
-		utilities.LogWarningf(ctx, "sendEmail: notification email not configured to be sent")
+		Logger.LogWarningf("sendEmail: notification email not configured to be sent")
 		return nil
 	}
 
 	subject, err := notification.Subject()
 	if err != nil {
-		utilities.LogErrorf(ctx, "sendEmail: Error resolving notification subject: %+v", err)
+		Logger.LogErrorf("sendEmail: Error resolving notification subject: %+v", err)
 		return err
 	}
 	body, err := notification.Body()
 	if err != nil {
-		utilities.LogErrorf(ctx, "sendEmail: Error resolving notification body: %+v", err)
+		Logger.LogErrorf("sendEmail: Error resolving notification body: %+v", err)
 		return err
 	}
 
@@ -47,7 +47,7 @@ func sendEmail(ctx context.Context, property *PropertyResolver, notification *No
 
 	err = mail.Send(ctx, msg)
 	if err != nil {
-		utilities.LogErrorf(ctx, "Error sending mail: %+v", err)
+		Logger.LogErrorf("Error sending mail: %+v", err)
 	}
 
 	return err

@@ -2,7 +2,6 @@ package frapi
 
 import (
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // RestrictionRollup is an internal struct used duing rollup of restrictions
@@ -45,7 +44,7 @@ func (r *PropertyResolver) rollupRestrictions() {
 		}
 		cacheError := r.cacheRollup(restrictionRollupType)
 		if cacheError != nil {
-			utilities.LogWarningf(r.ctx, "cache write restriction rollups error: %+v", cacheError)
+			Logger.LogWarningf("cache write restriction rollups error: %+v", cacheError)
 		}
 	}
 

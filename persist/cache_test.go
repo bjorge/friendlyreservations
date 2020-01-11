@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/bjorge/friendlyreservations/platform"
 	"google.golang.org/appengine/aetest"
 )
 
@@ -11,7 +12,7 @@ func TestCacheDatastore(t *testing.T) {
 	var ctx context.Context
 	var err error
 	var done func()
-	var persistedVersionedEvents PersistedVersionedEvents
+	var persistedVersionedEvents platform.PersistedVersionedEvents
 
 	ctx, done, err = aetest.NewContext()
 	if err != nil {
@@ -26,13 +27,13 @@ func TestCacheDatastore(t *testing.T) {
 func TestCacheUnitTest(t *testing.T) {
 	var ctx context.Context
 
-	var persistedVersionedEvents PersistedVersionedEvents
+	var persistedVersionedEvents platform.PersistedVersionedEvents
 	persistedVersionedEvents = NewPersistedVersionedEvents(true)
 	cacheTest(ctx, t, persistedVersionedEvents)
 
 }
 
-func cacheTest(ctx context.Context, t *testing.T, persistedVersionedEvents PersistedVersionedEvents) {
+func cacheTest(ctx context.Context, t *testing.T, persistedVersionedEvents platform.PersistedVersionedEvents) {
 
 	key := "theKey"
 	value := "theValue"

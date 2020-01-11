@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/bjorge/friendlyreservations/platform"
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/appengine/aetest"
 )
@@ -63,7 +64,7 @@ func testCreateEmail(t *testing.T, unitTest bool) {
 	var ctx context.Context
 	var err error
 	var done func()
-	var persistedEmailStore PersistedEmailStore
+	var persistedEmailStore platform.PersistedEmailStore
 	if unitTest {
 		persistedEmailStore = NewPersistedEmailStore(true)
 	} else {
@@ -145,7 +146,7 @@ func testDeleteEmail(t *testing.T, unitTest bool) {
 	var ctx context.Context
 	var done func()
 	var err error
-	var persistedEmailStore PersistedEmailStore
+	var persistedEmailStore platform.PersistedEmailStore
 	if unitTest {
 		persistedEmailStore = NewPersistedEmailStore(true)
 	} else {
@@ -191,8 +192,8 @@ func persistEventsFunc(t *testing.T, unitTest bool) {
 	var ctx context.Context
 	var err error
 	var done func()
-	var persistedVersionedEvents PersistedVersionedEvents
-	var persistedPropertyList PersistedPropertyList
+	var persistedVersionedEvents platform.PersistedVersionedEvents
+	var persistedPropertyList platform.PersistedPropertyList
 	if unitTest {
 		persistedVersionedEvents = NewPersistedVersionedEvents(true)
 		persistedPropertyList = NewPersistedPropertyList(true)
@@ -213,7 +214,7 @@ func persistEventsFunc(t *testing.T, unitTest bool) {
 	version := &testEvent1{Value: 1}
 	property := &testEvent2{Value: "one"}
 
-	firstEvents := []VersionedEvent{version, property}
+	firstEvents := []platform.VersionedEvent{version, property}
 
 	nextPropertyTransactionKey, err := persistedPropertyList.GetNextVersion(ctx)
 	if err != nil {
@@ -236,7 +237,7 @@ func persistEventsFunc(t *testing.T, unitTest bool) {
 	}
 
 	version2 := &testEvent3{Value: true}
-	ifaces := []VersionedEvent{version2}
+	ifaces := []platform.VersionedEvent{version2}
 
 	nextTransactionID, err := persistedVersionedEvents.NewPropertyEvents(ctx, propertyID, nextEventTransactionKey, ifaces, false)
 
@@ -316,8 +317,8 @@ func persistDeleteFunc(t *testing.T, unitTest bool) {
 	var ctx context.Context
 	var err error
 	var done func()
-	var persistedVersionedEvents PersistedVersionedEvents
-	var persistedPropertyList PersistedPropertyList
+	var persistedVersionedEvents platform.PersistedVersionedEvents
+	var persistedPropertyList platform.PersistedPropertyList
 	if unitTest {
 		persistedVersionedEvents = NewPersistedVersionedEvents(true)
 		persistedPropertyList = NewPersistedPropertyList(true)
@@ -338,7 +339,7 @@ func persistDeleteFunc(t *testing.T, unitTest bool) {
 	version := &testEvent1{Value: 1}
 	property := &testEvent2{Value: "one"}
 
-	firstEvents := []VersionedEvent{version, property}
+	firstEvents := []platform.VersionedEvent{version, property}
 
 	nextPropertyTransactionKey, err := persistedPropertyList.GetNextVersion(ctx)
 	if err != nil {
@@ -375,7 +376,7 @@ func testRestoreEmail(t *testing.T, unitTest bool) {
 	var ctx context.Context
 	var err error
 	var done func()
-	var persistedEmailStore PersistedEmailStore
+	var persistedEmailStore platform.PersistedEmailStore
 	if unitTest {
 		persistedEmailStore = NewPersistedEmailStore(true)
 	} else {

@@ -8,8 +8,7 @@ import (
 	"sync"
 
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/persist"
-	"github.com/bjorge/friendlyreservations/utilities"
+	"github.com/bjorge/friendlyreservations/platform"
 )
 
 type versionedRollup interface {
@@ -46,10 +45,10 @@ type Property struct {
 	PropertyID     string
 	CreateDateTime string
 
-	EmailMap map[string]persist.PersistedEmail
+	EmailMap map[string]platform.PersistedEmail
 
 	// reference the events pulled from the database
-	Events []persist.VersionedEvent
+	Events []platform.VersionedEvent
 
 	// map of rollups for different types of resolvers such as
 	// reservations, notifications, etc.
@@ -73,7 +72,7 @@ func (r *Resolver) Properties(ctx context.Context) ([]*PropertyResolver, error) 
 	var l []*PropertyResolver
 
 	// check that a user is logged in
-	u := utilities.GetUser(ctx)
+	u := GetUser(ctx)
 	if u == nil {
 		return nil, errors.New("user not logged in")
 	}
@@ -314,11 +313,11 @@ func (r *PropertyResolver) cacheRollup(resolverType rollupType) error {
 	// cache the rollup
 	gobData, cacheError := gobFromRollups(resolverMap)
 	if cacheError != nil {
-		utilities.LogWarningf(r.ctx, "cache gob from rollups error: %+v", cacheError)
+		Logger.LogWarningf("cache gob from rollups error: %+v", cacheError)
 	} else {
 		cacheError = persistedVersionedEvents.CacheWrite(r.ctx, r.PropertyID(), int(r.EventVersion()), string(resolverType), gobData)
 		if cacheError != nil {
-			utilities.LogWarningf(r.ctx, "cache rollups write error: %+v", cacheError)
+			Logger.LogWarningf("cache rollups write error: %+v", cacheError)
 		}
 	}
 

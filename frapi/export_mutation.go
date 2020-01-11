@@ -10,12 +10,12 @@ import (
 	"github.com/bjorge/friendlyreservations/utilities"
 	"google.golang.org/appengine/mail"
 
-	"github.com/bjorge/friendlyreservations/persist"
+	"github.com/bjorge/friendlyreservations/platform"
 )
 
 // PropertyExport defines the contents of an exported property gob
 type PropertyExport struct {
-	Events   []persist.VersionedEvent
+	Events   []platform.VersionedEvent
 	EmailMap map[string]string
 }
 
@@ -41,7 +41,7 @@ func (r *Resolver) Export(ctx context.Context, args *struct {
 
 	err = mail.Send(ctx, msg)
 	if err != nil {
-		utilities.LogErrorf(ctx, "Error sending mail: %+v", err)
+		Logger.LogErrorf("Error sending mail: %+v", err)
 	}
 
 	return property, nil

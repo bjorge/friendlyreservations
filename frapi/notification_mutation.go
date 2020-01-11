@@ -5,7 +5,6 @@ import (
 
 	"github.com/bjorge/friendlyreservations/frdate"
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // NotificationRead marks a notification as having been read
@@ -14,7 +13,7 @@ func (r *Resolver) NotificationRead(ctx context.Context, args *struct {
 	NotificationID string
 	ForVersion     int32
 }) (*PropertyResolver, error) {
-	utilities.DebugLog(ctx, "Mark notification as read")
+	Logger.LogDebugf("Mark notification as read")
 
 	property, me, err := currentProperty(ctx, args.PropertyID)
 

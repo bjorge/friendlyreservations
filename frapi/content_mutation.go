@@ -6,7 +6,6 @@ import (
 
 	"github.com/bjorge/friendlyreservations/frdate"
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // CreateContent is the gql call to create new display content
@@ -14,7 +13,7 @@ func (r *Resolver) CreateContent(ctx context.Context, args *struct {
 	PropertyID string
 	Input      *models.NewContentInput
 }) (*PropertyResolver, error) {
-	utilities.DebugLog(ctx, "CreateContent")
+	Logger.LogDebugf("CreateContent")
 
 	property, me, err := currentProperty(ctx, args.PropertyID)
 	if err != nil {

@@ -14,7 +14,7 @@ func (r *Resolver) CreateRestriction(ctx context.Context, args *struct {
 	PropertyID string
 	Input      *models.NewRestrictionInput
 }) (*PropertyResolver, error) {
-	utilities.DebugLog(ctx, "Create Restriction")
+	Logger.LogDebugf("Create Restriction")
 
 	property, me, err := currentProperty(ctx, args.PropertyID)
 	if err != nil {

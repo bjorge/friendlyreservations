@@ -5,49 +5,29 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/bjorge/friendlyreservations/platform"
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/appengine/datastore"
 )
 
-// BUG(bjorge): change array items []PersistedEmail to array of pointers
-
-// PersistedEmailStore is the interface for accessing the store of email addresses
-type PersistedEmailStore interface {
-	CreateEmail(ctx context.Context, propertyID string, email string) (*PersistedEmail, error)
-	GetPropertiesByEmail(ctx context.Context, email string) ([]PersistedEmail, error)
-	GetEmailMap(ctx context.Context, propertyID string) (map[string]PersistedEmail, error)
-	RestoreEmails(ctx context.Context, propertyID string, persistedEmails map[string]string) error
-	GetEmail(ctx context.Context, propertyID string, email string) (*PersistedEmail, error)
-
-	// BUG(bjorge): change *bool to be bool in EmailExists()
-
-	EmailExists(ctx context.Context, propertyID string, email string) (*bool, error)
-	DeleteEmails(ctx context.Context, propertyID string) error
-}
+// BUG(bjorge): change array items []platform.PersistedEmail to array of pointers
 
 type dataStoreEmailImpl struct{}
 type unitTestEmailImpl struct {
-	propertyToEmailIds map[string]map[string]PersistedEmail
-	emailToProperties  map[string][]PersistedEmail
+	propertyToEmailIds map[string]map[string]platform.PersistedEmail
+	emailToProperties  map[string][]platform.PersistedEmail
 }
 
 // NewPersistedEmailStore is the factory method to create an email store
-func NewPersistedEmailStore(unitTest bool) PersistedEmailStore {
+func NewPersistedEmailStore(unitTest bool) platform.PersistedEmailStore {
 	if !unitTest {
 		return &dataStoreEmailImpl{}
 	}
 	return &unitTestEmailImpl{
-		propertyToEmailIds: make(map[string]map[string]PersistedEmail),
-		emailToProperties:  make(map[string][]PersistedEmail),
+		propertyToEmailIds: make(map[string]map[string]platform.PersistedEmail),
+		emailToProperties:  make(map[string][]platform.PersistedEmail),
 	}
 
-}
-
-// PersistedEmail is the structure used to store an email address and other PII information
-type PersistedEmail struct {
-	EmailID    string `datastore:"EmailId"`    // legacy name
-	Email      string `datastore:"Email"`      // legacy name
-	PropertyID string `datastore:"PropertyId"` // legacy name
 }
 
 var persistedEmailsKind = "PERSISTED_EMAILS_KIND"
@@ -56,32 +36,32 @@ var emailKeyDelimiter = ":"
 
 var emailKeyPrefix = "EMAIL_KEY"
 
-func (r *unitTestEmailImpl) CreateEmail(ctx context.Context, propertyID string, email string) (*PersistedEmail, error) {
+func (r *unitTestEmailImpl) CreateEmail(ctx context.Context, propertyID string, email string) (*platform.PersistedEmail, error) {
 	_, ok := r.propertyToEmailIds[propertyID]
 	if !ok {
-		r.propertyToEmailIds[propertyID] = make(map[string]PersistedEmail)
+		r.propertyToEmailIds[propertyID] = make(map[string]platform.PersistedEmail)
 	}
 
 	emailID := uuid.Must(uuid.NewV4()).String()
-	persistedEmail := PersistedEmail{EmailID: emailID, Email: email, PropertyID: propertyID}
+	persistedEmail := platform.PersistedEmail{EmailID: emailID, Email: email, PropertyID: propertyID}
 	r.propertyToEmailIds[propertyID][emailID] = persistedEmail
 
 	_, ok = r.emailToProperties[email]
 	if !ok {
-		r.emailToProperties[email] = []PersistedEmail{}
+		r.emailToProperties[email] = []platform.PersistedEmail{}
 	}
 	r.emailToProperties[email] = append(r.emailToProperties[email], persistedEmail)
 
 	return &persistedEmail, nil
 }
-func (r *unitTestEmailImpl) GetPropertiesByEmail(ctx context.Context, email string) ([]PersistedEmail, error) {
+func (r *unitTestEmailImpl) GetPropertiesByEmail(ctx context.Context, email string) ([]platform.PersistedEmail, error) {
 	if _, ok := r.emailToProperties[email]; ok {
 		return r.emailToProperties[email], nil
 	}
-	return []PersistedEmail{}, nil
+	return []platform.PersistedEmail{}, nil
 
 }
-func (r *unitTestEmailImpl) GetEmailMap(ctx context.Context, propertyID string) (map[string]PersistedEmail, error) {
+func (r *unitTestEmailImpl) GetEmailMap(ctx context.Context, propertyID string) (map[string]platform.PersistedEmail, error) {
 	if _, ok := r.propertyToEmailIds[propertyID]; ok {
 		return r.propertyToEmailIds[propertyID], nil
 	}
@@ -93,24 +73,24 @@ func (r *unitTestEmailImpl) RestoreEmails(ctx context.Context, propertyID string
 	for emailID, email := range persistedEmails {
 		_, ok := r.propertyToEmailIds[propertyID]
 		if !ok {
-			r.propertyToEmailIds[propertyID] = make(map[string]PersistedEmail)
+			r.propertyToEmailIds[propertyID] = make(map[string]platform.PersistedEmail)
 		}
 
 		// email := record.Email
 		// emailId := record.EmailId
-		persistedEmail := PersistedEmail{EmailID: emailID, Email: email, PropertyID: propertyID}
+		persistedEmail := platform.PersistedEmail{EmailID: emailID, Email: email, PropertyID: propertyID}
 		r.propertyToEmailIds[propertyID][emailID] = persistedEmail
 
 		_, ok = r.emailToProperties[email]
 		if !ok {
-			r.emailToProperties[email] = []PersistedEmail{}
+			r.emailToProperties[email] = []platform.PersistedEmail{}
 		}
 		r.emailToProperties[email] = append(r.emailToProperties[email], persistedEmail)
 	}
 	return nil
 }
 
-func (r *unitTestEmailImpl) GetEmail(ctx context.Context, propertyID string, email string) (*PersistedEmail, error) {
+func (r *unitTestEmailImpl) GetEmail(ctx context.Context, propertyID string, email string) (*platform.PersistedEmail, error) {
 	if _, ok := r.emailToProperties[email]; ok {
 		properties := r.emailToProperties[email]
 		for _, persistedEmail := range properties {
@@ -140,7 +120,7 @@ func (r *unitTestEmailImpl) EmailExists(ctx context.Context, propertyID string, 
 func (r *unitTestEmailImpl) DeleteEmails(ctx context.Context, propertyID string) error {
 	if mapEmailIds, ok := r.propertyToEmailIds[propertyID]; ok {
 		for _, record1 := range mapEmailIds {
-			newList := []PersistedEmail{}
+			newList := []platform.PersistedEmail{}
 			email := record1.Email
 			for _, record2 := range r.emailToProperties[email] {
 				if record2.PropertyID != propertyID {
@@ -172,13 +152,13 @@ func emailRecordKey(ctx context.Context, propertyID string, email string) (*data
 	return key, parentKey, nil
 }
 
-func (r *dataStoreEmailImpl) GetPropertiesByEmail(ctx context.Context, email string) ([]PersistedEmail, error) {
+func (r *dataStoreEmailImpl) GetPropertiesByEmail(ctx context.Context, email string) ([]platform.PersistedEmail, error) {
 	trimmedEmail := strings.ToLower(strings.TrimSpace(email))
 
 	query := datastore.NewQuery(persistedEmailsKind).Filter("Email =", trimmedEmail)
-	records := []PersistedEmail{}
+	records := []platform.PersistedEmail{}
 	for iterator := query.Run(ctx); ; {
-		entity := &PersistedEmail{}
+		entity := &platform.PersistedEmail{}
 		_, err := iterator.Next(entity)
 		if err == datastore.Done {
 			break
@@ -193,15 +173,15 @@ func (r *dataStoreEmailImpl) GetPropertiesByEmail(ctx context.Context, email str
 }
 
 // GetEmailMap returns a map of email id to email object
-func (r *dataStoreEmailImpl) GetEmailMap(ctx context.Context, propertyID string) (map[string]PersistedEmail, error) {
-	emailMap := make(map[string]PersistedEmail)
+func (r *dataStoreEmailImpl) GetEmailMap(ctx context.Context, propertyID string) (map[string]platform.PersistedEmail, error) {
+	emailMap := make(map[string]platform.PersistedEmail)
 
 	parentKey, err := propertyParentKey(ctx, propertyID)
 	if err != nil {
 		return nil, err
 	}
 
-	x := &PersistedEmail{}
+	x := &platform.PersistedEmail{}
 	opts := &datastore.TransactionOptions{XG: true}
 	err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
 		query := datastore.NewQuery(persistedEmailsKind).Ancestor(parentKey)
@@ -234,7 +214,7 @@ func (r *dataStoreEmailImpl) RestoreEmails(ctx context.Context, propertyID strin
 			return err
 		}
 		//emailId := record.EmailId
-		record := &PersistedEmail{Email: email, EmailID: emailID, PropertyID: propertyID}
+		record := &platform.PersistedEmail{Email: email, EmailID: emailID, PropertyID: propertyID}
 		opts := &datastore.TransactionOptions{XG: true}
 		err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
 			_, err = datastore.Put(ctx, key, record)
@@ -248,7 +228,7 @@ func (r *dataStoreEmailImpl) RestoreEmails(ctx context.Context, propertyID strin
 	return nil
 }
 
-func (r *dataStoreEmailImpl) GetEmail(ctx context.Context, propertyID string, email string) (*PersistedEmail, error) {
+func (r *dataStoreEmailImpl) GetEmail(ctx context.Context, propertyID string, email string) (*platform.PersistedEmail, error) {
 	trimmedEmail := strings.ToLower(strings.TrimSpace(email))
 
 	key, parentKey, err := emailRecordKey(ctx, propertyID, trimmedEmail)
@@ -256,7 +236,7 @@ func (r *dataStoreEmailImpl) GetEmail(ctx context.Context, propertyID string, em
 		return nil, err
 	}
 
-	x := &PersistedEmail{}
+	x := &platform.PersistedEmail{}
 	opts := &datastore.TransactionOptions{XG: true}
 	err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
 		query := datastore.NewQuery(persistedEmailsKind).Ancestor(parentKey).Filter("__key__ =", key)
@@ -311,7 +291,7 @@ func (r *dataStoreEmailImpl) DeleteEmails(ctx context.Context, propertyID string
 
 }
 
-func (r *dataStoreEmailImpl) CreateEmail(ctx context.Context, propertyID string, email string) (*PersistedEmail, error) {
+func (r *dataStoreEmailImpl) CreateEmail(ctx context.Context, propertyID string, email string) (*platform.PersistedEmail, error) {
 
 	record, err := r.GetEmail(ctx, propertyID, email)
 	if err == nil {
@@ -321,7 +301,7 @@ func (r *dataStoreEmailImpl) CreateEmail(ctx context.Context, propertyID string,
 		if err != nil {
 			return nil, err
 		}
-		record = &PersistedEmail{Email: email, EmailID: uuid.Must(uuid.NewV4()).String(), PropertyID: propertyID}
+		record = &platform.PersistedEmail{Email: email, EmailID: uuid.Must(uuid.NewV4()).String(), PropertyID: propertyID}
 		opts := &datastore.TransactionOptions{XG: true}
 		err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
 			_, err = datastore.Put(ctx, key, record)

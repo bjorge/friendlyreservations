@@ -73,7 +73,7 @@ func TestRestrictions(t *testing.T) {
 // 		EventVersion:  3,
 // 	}
 
-// 	property.Events = []persist.VersionedEvent{newUserInput, restriction1, restriction2, restriction3}
+// 	property.Events = []platform.VersionedEvent{newUserInput, restriction1, restriction2, restriction3}
 
 // 	propertyResolver := &PResolver{property}
 // 	restrictions, err := propertyResolver.Restrictions(nil, &struct {

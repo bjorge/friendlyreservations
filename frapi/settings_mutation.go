@@ -7,7 +7,6 @@ import (
 
 	"github.com/bjorge/friendlyreservations/frdate"
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // UpdateSettings is called to modify the current settings for a property
@@ -15,7 +14,7 @@ func (r *Resolver) UpdateSettings(ctx context.Context, args *struct {
 	PropertyID string
 	Input      *models.UpdateSettingsInput
 }) (*PropertyResolver, error) {
-	utilities.DebugLog(ctx, "Update Settings")
+	Logger.LogDebugf("Update Settings")
 
 	// get the current property
 	property, me, err := currentProperty(ctx, args.PropertyID)

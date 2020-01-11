@@ -16,7 +16,7 @@ func (r *Resolver) CreateUser(ctx context.Context, args *struct {
 	PropertyID string
 	Input      *models.NewUserInput
 }) (*PropertyResolver, error) {
-	utilities.DebugLog(ctx, "Create User")
+	Logger.LogDebugf("Create User")
 
 	// get the current property
 	propertyResolver, me, err := currentProperty(ctx, args.PropertyID)
@@ -108,7 +108,7 @@ func (r *Resolver) UpdateUser(ctx context.Context, args *struct {
 	UserID     string
 	Input      *models.UpdateUserInput
 }) (*PropertyResolver, error) {
-	utilities.DebugLog(ctx, "Update User")
+	Logger.LogDebugf("Update User")
 
 	propertyResolver, me, err := currentProperty(ctx, args.PropertyID)
 	if err != nil {
@@ -226,7 +226,7 @@ func (r *Resolver) AcceptInvitation(ctx context.Context, args *struct {
 	PropertyID string
 	Input      *models.AcceptInvitationInput
 }) (*PropertyResolver, error) {
-	utilities.DebugLog(ctx, "Accept Invitation")
+	Logger.LogDebugf("Accept Invitation")
 
 	// get the current property
 	propertyResolver, me, err := currentProperty(ctx, args.PropertyID)

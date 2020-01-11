@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/bjorge/friendlyreservations/platform"
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/appengine/aetest"
 )
@@ -14,7 +15,7 @@ func TestConsolidateDatastore(t *testing.T) {
 	var ctx context.Context
 	var err error
 	var done func()
-	var persistedVersionedEvents PersistedVersionedEvents
+	var persistedVersionedEvents platform.PersistedVersionedEvents
 
 	ctx, done, err = aetest.NewContext()
 	if err != nil {
@@ -32,7 +33,7 @@ func TestConsolidateDatastore(t *testing.T) {
 func TestConsolidateUnitTest(t *testing.T) {
 	var ctx context.Context
 
-	var persistedVersionedEvents PersistedVersionedEvents
+	var persistedVersionedEvents platform.PersistedVersionedEvents
 	persistedVersionedEvents = NewPersistedVersionedEvents(true)
 	defaultsTest(ctx, t, persistedVersionedEvents)
 	numRecordsTest(ctx, t, persistedVersionedEvents)
@@ -40,7 +41,7 @@ func TestConsolidateUnitTest(t *testing.T) {
 
 }
 
-func defaultsTest(ctx context.Context, t *testing.T, persistedVersionedEvents PersistedVersionedEvents) {
+func defaultsTest(ctx context.Context, t *testing.T, persistedVersionedEvents platform.PersistedVersionedEvents) {
 
 	_, events, numRecords := consolidateTest(ctx, t, persistedVersionedEvents)
 
@@ -57,7 +58,7 @@ func defaultsTest(ctx context.Context, t *testing.T, persistedVersionedEvents Pe
 	}
 }
 
-func numRecordsTest(ctx context.Context, t *testing.T, persistedVersionedEvents PersistedVersionedEvents) {
+func numRecordsTest(ctx context.Context, t *testing.T, persistedVersionedEvents platform.PersistedVersionedEvents) {
 
 	consolidateCompress = false
 	consolidateNumRecords = 20
@@ -77,7 +78,7 @@ func numRecordsTest(ctx context.Context, t *testing.T, persistedVersionedEvents 
 	}
 }
 
-func maxSizeTest(ctx context.Context, t *testing.T, persistedVersionedEvents PersistedVersionedEvents) {
+func maxSizeTest(ctx context.Context, t *testing.T, persistedVersionedEvents platform.PersistedVersionedEvents) {
 
 	consolidateNumRecords = 10
 	consolidateMaxSize = 500
@@ -98,7 +99,7 @@ func maxSizeTest(ctx context.Context, t *testing.T, persistedVersionedEvents Per
 	}
 }
 
-func compressTest(ctx context.Context, t *testing.T, persistedVersionedEvents PersistedVersionedEvents) {
+func compressTest(ctx context.Context, t *testing.T, persistedVersionedEvents platform.PersistedVersionedEvents) {
 
 	consolidateNumRecords = 10
 	consolidateMaxSize = 500
@@ -119,7 +120,7 @@ func compressTest(ctx context.Context, t *testing.T, persistedVersionedEvents Pe
 	}
 }
 
-func consolidateTest(ctx context.Context, t *testing.T, persistedVersionedEvents PersistedVersionedEvents) (string, []VersionedEvent, int) {
+func consolidateTest(ctx context.Context, t *testing.T, persistedVersionedEvents platform.PersistedVersionedEvents) (string, []platform.VersionedEvent, int) {
 
 	gob.Register(&testEvent1{})
 	gob.Register(&testEvent2{})
@@ -128,7 +129,7 @@ func consolidateTest(ctx context.Context, t *testing.T, persistedVersionedEvents
 	event1 := &testEvent1{Value: 1}
 	event2 := &testEvent2{Value: "one"}
 
-	firstEvents := []VersionedEvent{event1, event2}
+	firstEvents := []platform.VersionedEvent{event1, event2}
 
 	propertyID := uuid.Must(uuid.NewV4()).String()
 	nextEventTransactionKey, err := persistedVersionedEvents.CreateProperty(ctx, propertyID, firstEvents, nil, 0)
@@ -140,7 +141,7 @@ func consolidateTest(ctx context.Context, t *testing.T, persistedVersionedEvents
 	nextID := 2
 	// add a bunch of events
 	for i := 0; i < 100; i++ {
-		nextEventTransactionKey, err = persistedVersionedEvents.NewPropertyEvents(ctx, propertyID, nextEventTransactionKey, []VersionedEvent{&testEvent3{Value: true}}, false)
+		nextEventTransactionKey, err = persistedVersionedEvents.NewPropertyEvents(ctx, propertyID, nextEventTransactionKey, []platform.VersionedEvent{&testEvent3{Value: true}}, false)
 		if err != nil {
 			t.Fatal(err)
 		}

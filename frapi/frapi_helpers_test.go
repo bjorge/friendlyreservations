@@ -15,17 +15,16 @@ import (
 
 // initAndCreateTestProperty is used by various unit tests as a starting point
 func initAndCreateTestProperty(testCtx context.Context, t *testing.T) (*PropertyResolver, context.Context, *Resolver, *UserResolver, *frdate.Date) {
-	utilities.SetTestingNow()
 	utilities.SetTestUser(defaultEmail)
 	utilities.SetTestSystemUser("noreply@testing.com")
 	utilities.SetAllowCreateProperty()
 	utilities.TrialDuration, _ = time.ParseDuration("0h")
 
 	frdate.TestTimeOffsetDays = nil
-	utilities.SetTestingNow()
 	persistedEmailStore = persist.NewPersistedEmailStore(true)
 	persistedVersionedEvents = persist.NewPersistedVersionedEvents(true)
 	persistedPropertyList = persist.NewPersistedPropertyList(true)
+	Logger = persist.NewPlatformLogger(true)
 
 	resolver := &Resolver{}
 

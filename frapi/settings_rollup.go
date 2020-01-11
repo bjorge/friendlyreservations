@@ -2,7 +2,6 @@ package frapi
 
 import (
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // SettingsRollup is an internal struct used duing rollup of settings
@@ -85,7 +84,7 @@ func (r *PropertyResolver) rollupSettings() {
 		}
 		cacheError := r.cacheRollup(settingsRollupType)
 		if cacheError != nil {
-			utilities.LogWarningf(r.ctx, "cache write setting rollups error: %+v", cacheError)
+			Logger.LogWarningf("cache write setting rollups error: %+v", cacheError)
 		}
 	}
 }

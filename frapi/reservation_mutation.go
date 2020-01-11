@@ -18,7 +18,7 @@ func (r *Resolver) CancelReservation(ctx context.Context, args *struct {
 	ReservationID string
 	AdminRequest  *bool
 }) (*PropertyResolver, error) {
-	utilities.DebugLog(ctx, "Cancel Reservation")
+	Logger.LogDebugf("Cancel Reservation")
 
 	adminRequest := false
 	if args.AdminRequest != nil && *args.AdminRequest {
@@ -102,7 +102,7 @@ func (r *Resolver) CreateReservation(ctx context.Context, args *struct {
 	PropertyID string
 	Input      *models.NewReservationInput
 }) (*PropertyResolver, error) {
-	utilities.DebugLog(ctx, "Create Reservation")
+	Logger.LogDebugf("Create Reservation")
 
 	// get the current property
 	propertyResolver, me, err := currentProperty(ctx, args.PropertyID)

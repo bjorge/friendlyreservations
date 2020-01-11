@@ -5,9 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bjorge/friendlyreservations/persist"
-
 	"github.com/bjorge/friendlyreservations/frdate"
+	"github.com/bjorge/friendlyreservations/platform"
 	"github.com/bjorge/friendlyreservations/utilities"
 
 	"github.com/bjorge/friendlyreservations/models"
@@ -22,7 +21,7 @@ func TestLoadExport(t *testing.T) {
 	userID := me.UserID()
 	version := property.EventVersion()
 	forVersion := version
-	events := []persist.VersionedEvent{}
+	events := []platform.VersionedEvent{}
 	numEvents := int32(100000)
 	for i := int32(0); i < numEvents; i++ {
 		updateBalance := createUpdateBalanceRecord(userID, 1, forVersion)

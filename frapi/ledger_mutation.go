@@ -16,7 +16,7 @@ func (r *Resolver) UpdateBalance(ctx context.Context, args *struct {
 	PropertyID string
 	Input      *models.UpdateBalanceInput
 }) (*PropertyResolver, error) {
-	utilities.DebugLog(ctx, "Update Balance")
+	Logger.LogDebugf("Update Balance")
 
 	// get the current property
 	propertyResolver, me, err := currentProperty(ctx, args.PropertyID)

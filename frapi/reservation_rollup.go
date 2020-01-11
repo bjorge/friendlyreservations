@@ -2,7 +2,6 @@ package frapi
 
 import (
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // ReservationRollup holds a snapshot of a reservation at each event
@@ -61,7 +60,7 @@ func (r *PropertyResolver) rollupReservations() {
 		}
 		cacheError := r.cacheRollup(reservationRollupType)
 		if cacheError != nil {
-			utilities.LogWarningf(r.ctx, "cache write reservation rollups error: %+v", cacheError)
+			Logger.LogWarningf("cache write reservation rollups error: %+v", cacheError)
 		}
 	}
 

@@ -4,16 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/bjorge/friendlyreservations/platform"
 	"google.golang.org/appengine/datastore"
 )
-
-// PersistedPropertyList is the interface for managing property ids in the system
-type PersistedPropertyList interface {
-	CreateProperty(ctx context.Context, propertyID string, version int) error
-	GetNextVersion(ctx context.Context) (int, error)
-	GetProperties(ctx context.Context) ([]string, error)
-	DeleteProperty(ctx context.Context, propertyID string) error
-}
 
 type dataStoreListImpl struct{}
 type unitTestListImpl struct {
@@ -21,7 +14,7 @@ type unitTestListImpl struct {
 }
 
 // NewPersistedPropertyList is the factory method to create an property list store
-func NewPersistedPropertyList(unitTest bool) PersistedPropertyList {
+func NewPersistedPropertyList(unitTest bool) platform.PersistedPropertyList {
 	if unitTest {
 		return &unitTestListImpl{PropertyList: []string{}}
 	}

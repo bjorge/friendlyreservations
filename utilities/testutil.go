@@ -1,10 +1,5 @@
 package utilities
 
-// SetTestingNow is called to log to stdout during testing
-func SetTestingNow() {
-	logToStdOut = true
-}
-
 // SetTestSystemUser is called to setup the default system user during testing
 func SetTestSystemUser(email string) {
 	SystemEmail = email

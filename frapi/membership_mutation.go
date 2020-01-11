@@ -6,7 +6,6 @@ import (
 
 	"github.com/bjorge/friendlyreservations/frdate"
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // UpdateMembershipStatus is called to update membership status (ex. payed, opted out, etc.)
@@ -14,7 +13,7 @@ func (r *Resolver) UpdateMembershipStatus(ctx context.Context, args *struct {
 	PropertyID string
 	Input      *models.UpdateMembershipStatusInput
 }) (*PropertyResolver, error) {
-	utilities.DebugLog(ctx, "Update Membership Status")
+	Logger.LogDebugf("Update Membership Status")
 
 	// get the current property
 	property, me, err := currentProperty(ctx, args.PropertyID)

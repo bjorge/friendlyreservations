@@ -7,7 +7,7 @@ import (
 
 	"github.com/bjorge/friendlyreservations/frdate"
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/persist"
+	"github.com/bjorge/friendlyreservations/platform"
 	"github.com/bjorge/friendlyreservations/templates"
 	"github.com/bjorge/friendlyreservations/utilities"
 )
@@ -55,7 +55,7 @@ func (r *Resolver) internalDeleteProperty(ctx context.Context, propertyID string
 func (r *Resolver) CreateProperty(ctx context.Context, args *struct{ Input *models.NewPropertyInput }) (*PropertyResolver, error) {
 
 	// check that a user is logged in
-	u := utilities.GetUser(ctx)
+	u := GetUser(ctx)
 	if u == nil {
 		return nil, errors.New("user not logged in")
 	}
@@ -114,7 +114,7 @@ func (r *Resolver) CreateProperty(ctx context.Context, args *struct{ Input *mode
 }
 
 // CreateNewPropertyEvents sets up a new property with its first default events
-func CreateNewPropertyEvents(ctx context.Context, email string, userID string, newProperty *models.NewPropertyInput) ([]persist.VersionedEvent, error) {
+func CreateNewPropertyEvents(ctx context.Context, email string, userID string, newProperty *models.NewPropertyInput) ([]platform.VersionedEvent, error) {
 
 	// default version
 	newVersion := &models.NewVersionEvent{Version: 1}
@@ -151,7 +151,7 @@ func CreateNewPropertyEvents(ctx context.Context, email string, userID string, n
 	newNotification.TemplateParamData = make(map[templates.TemplateParamGroup]string)
 
 	// return all the first property events!
-	firstEvents := []persist.VersionedEvent{newVersion, newUser, newSystemUser, newProperty, newNotification}
+	firstEvents := []platform.VersionedEvent{newVersion, newUser, newSystemUser, newProperty, newNotification}
 
 	return firstEvents, nil
 }

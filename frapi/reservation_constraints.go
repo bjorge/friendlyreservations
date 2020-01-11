@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/bjorge/friendlyreservations/utilities"
 
 	"github.com/bjorge/friendlyreservations/frdate"
 )
@@ -201,7 +200,7 @@ func (r *PropertyResolver) NewReservationConstraints(ctx context.Context, args *
 
 	}
 
-	utilities.DebugLog(ctx, "NewReservationConstraints: start")
+	Logger.LogDebugf("NewReservationConstraints: start")
 
 	newReservationConstraints := &NewReservationConstraints{}
 	newReservationConstraints.newReservationAllowed = true
@@ -214,7 +213,7 @@ func (r *PropertyResolver) NewReservationConstraints(ctx context.Context, args *
 	}
 
 	if args.UserType == NONMEMBER && !settings.AllowNonMembers() {
-		utilities.DebugLog(ctx, "NewReservationConstraints: settings do not allow non-members")
+		Logger.LogDebugf("NewReservationConstraints: settings do not allow non-members")
 		newReservationConstraints.newReservationAllowed = false
 		return newReservationConstraints, nil
 	}
@@ -286,7 +285,7 @@ func (r *PropertyResolver) NewReservationConstraints(ctx context.Context, args *
 		}
 
 		for _, restriction := range restrictions {
-			utilities.DebugLog(ctx, "NewReservationConstraints: found a restriction: %+v", restriction.Description())
+			Logger.LogDebugf("NewReservationConstraints: found a restriction: %+v", restriction.Description())
 			blackoutRestriction, ok := restriction.Restriction().ToBlackoutRestriction()
 			if ok {
 				blackoutIn := dateBuilder.MustNewDate(blackoutRestriction.StartDate())
@@ -296,7 +295,7 @@ func (r *PropertyResolver) NewReservationConstraints(ctx context.Context, args *
 					return nil, err
 				}
 
-				utilities.DebugLog(ctx, "NewReservationConstraints: adding blackout restriction")
+				Logger.LogDebugf("NewReservationConstraints: adding blackout restriction")
 
 				newReservationConstraints.checkinDisabled = append(newReservationConstraints.checkinDisabled, in)
 				newReservationConstraints.checkoutDisabled = append(newReservationConstraints.checkoutDisabled, out)
@@ -306,7 +305,7 @@ func (r *PropertyResolver) NewReservationConstraints(ctx context.Context, args *
 
 	// Membership ranges
 	if args.UserType != ADMIN {
-		utilities.DebugLog(ctx, "NewReservationConstraints: looking for membership restrictions")
+		Logger.LogDebugf("NewReservationConstraints: looking for membership restrictions")
 		dateBuilder, _ := frdate.NewDateBuilder(settings.Timezone())
 
 		membershipStatusList, err := r.MembershipStatusConstraints(&membershipStatusConstraintsArgs{UserID: args.UserID})
