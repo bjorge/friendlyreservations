@@ -11,12 +11,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bjorge/friendlyreservations/logger"
 	"github.com/bjorge/friendlyreservations/platform"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/memcache"
 )
 
-var logging = &commonLogImpl{}
+var logging = logger.New()
 
 type cacheRecord struct {
 	Version    int

@@ -36,7 +36,7 @@ func internalImportProperty(ctx context.Context, data []byte) (string, error) {
 		return "", err
 	}
 
-	nextPropertyTransactionKey, err := persistedPropertyList.GetNextVersion(ctx)
+	nextPropertyTransactionKey, err := PersistedPropertyList.GetNextVersion(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -50,7 +50,7 @@ func internalImportProperty(ctx context.Context, data []byte) (string, error) {
 	if numEvents > maxEvents {
 		events = decoded.Events[nextVersion:maxEvents]
 	}
-	nextVersion, err = persistedVersionedEvents.CreateProperty(ctx, propertyID, events, persistedPropertyList, nextPropertyTransactionKey)
+	nextVersion, err = PersistedVersionedEvents.CreateProperty(ctx, propertyID, events, PersistedPropertyList, nextPropertyTransactionKey)
 	if err != nil {
 		return "", err
 	}
@@ -63,14 +63,14 @@ func internalImportProperty(ctx context.Context, data []byte) (string, error) {
 				high = numEvents
 			}
 			events = decoded.Events[nextVersion:high]
-			nextVersion, err = persistedVersionedEvents.NewPropertyEvents(ctx, propertyID, nextVersion, events, false)
+			nextVersion, err = PersistedVersionedEvents.NewPropertyEvents(ctx, propertyID, nextVersion, events, false)
 			if err != nil {
 				return "", err
 			}
 		}
 	}
 
-	persistedEmailStore.RestoreEmails(ctx, propertyID, decoded.EmailMap)
+	PersistedEmailStore.RestoreEmails(ctx, propertyID, decoded.EmailMap)
 
 	return propertyID, nil
 }

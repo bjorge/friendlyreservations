@@ -1,8 +1,9 @@
 package utilities
 
 import (
-	"os"
 	"time"
+
+	"github.com/bjorge/friendlyreservations/config"
 )
 
 // SystemEmail is the default from email address
@@ -33,15 +34,15 @@ var AllowCrossDomainRequests bool
 var TrialDuration time.Duration
 
 func init() {
-	SystemEmail = os.Getenv("DEFAULT_SYSTEM_EMAIL")
-	SystemName = os.Getenv("DEFAULT_SYSTEM_NAME")
-	TestUserEmail = os.Getenv("TEST_USER_EMAIL")
-	AllowNewProperty = os.Getenv("ALLOW_NEW_PROPERTY") == "true"
-	AllowDeleteProperty = os.Getenv("ALLOW_DELETE_PROPERTY") == "true"
-	ImportFileName = os.Getenv("IMPORT_FILE_NAME")
-	SendMailDisabled = os.Getenv("SEND_MAIL_DISABLED") == "true"
-	AllowCrossDomainRequests = os.Getenv("ALLOW_CROSS_DOMAIN_REQUESTS") == "true"
-	value := os.Getenv("TRIAL_DURATION")
+	SystemEmail = config.GetConfig("DEFAULT_SYSTEM_EMAIL")
+	SystemName = config.GetConfig("DEFAULT_SYSTEM_NAME")
+	TestUserEmail = config.GetConfig("TEST_USER_EMAIL")
+	AllowNewProperty = config.GetConfig("ALLOW_NEW_PROPERTY") == "true"
+	AllowDeleteProperty = config.GetConfig("ALLOW_DELETE_PROPERTY") == "true"
+	ImportFileName = config.GetConfig("IMPORT_FILE_NAME")
+	SendMailDisabled = config.GetConfig("SEND_MAIL_DISABLED") == "true"
+	AllowCrossDomainRequests = config.GetConfig("ALLOW_CROSS_DOMAIN_REQUESTS") == "true"
+	value := config.GetConfig("TRIAL_DURATION")
 	if value == "" {
 		// default 0
 		TrialDuration, _ = time.ParseDuration("0h")

@@ -111,7 +111,7 @@ func (r *UpdateSettingsConstraints) AllowNewProperty() bool {
 	}
 
 	// get all the properties
-	emailRecords, err := persistedEmailStore.GetPropertiesByEmail(r.ctx, u.Email)
+	emailRecords, err := PersistedEmailStore.GetPropertiesByEmail(r.ctx, u.Email)
 	Logger.LogDebugf("User %+v has %+v properties", u.Email, len(emailRecords))
 
 	if err == nil {

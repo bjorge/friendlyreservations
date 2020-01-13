@@ -21,10 +21,9 @@ func initAndCreateTestProperty(testCtx context.Context, t *testing.T) (*Property
 	utilities.TrialDuration, _ = time.ParseDuration("0h")
 
 	frdate.TestTimeOffsetDays = nil
-	persistedEmailStore = persist.NewPersistedEmailStore(true)
-	persistedVersionedEvents = persist.NewPersistedVersionedEvents(true)
-	persistedPropertyList = persist.NewPersistedPropertyList(true)
-	Logger = persist.NewPlatformLogger(true)
+	PersistedEmailStore = persist.NewPersistedEmailStore(true)
+	PersistedVersionedEvents = persist.NewPersistedVersionedEvents(true)
+	PersistedPropertyList = persist.NewPersistedPropertyList(true)
 
 	resolver := &Resolver{}
 

@@ -119,7 +119,7 @@ func (r *Resolver) cronProperties(ctx context.Context) ([]*PropertyResolver, err
 	}
 
 	// get all the properties
-	ids, err := persistedPropertyList.GetProperties(ctx)
+	ids, err := PersistedPropertyList.GetProperties(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -142,11 +142,11 @@ func commitCronChanges(ctx context.Context, propertyID string,
 		eventList = append(eventList, event)
 	}
 
-	key, err := persistedVersionedEvents.GetNextEventID(ctx, propertyID, false)
+	key, err := PersistedVersionedEvents.GetNextEventID(ctx, propertyID, false)
 	if err != nil {
 		return nil, err
 	}
-	_, err = persistedVersionedEvents.NewPropertyEvents(ctx, propertyID, key, eventList, false)
+	_, err = PersistedVersionedEvents.NewPropertyEvents(ctx, propertyID, key, eventList, false)
 	if err != nil {
 		return nil, err
 	}

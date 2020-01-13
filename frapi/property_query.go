@@ -78,7 +78,7 @@ func (r *Resolver) Properties(ctx context.Context) ([]*PropertyResolver, error) 
 	}
 
 	// get all the properties
-	emailRecords, err := persistedEmailStore.GetPropertiesByEmail(ctx, u.Email)
+	emailRecords, err := PersistedEmailStore.GetPropertiesByEmail(ctx, u.Email)
 	//ids, err := utilities.PersistedPropertyList.GetProperties(ctx)
 	if err != nil {
 		return nil, err
@@ -315,7 +315,7 @@ func (r *PropertyResolver) cacheRollup(resolverType rollupType) error {
 	if cacheError != nil {
 		Logger.LogWarningf("cache gob from rollups error: %+v", cacheError)
 	} else {
-		cacheError = persistedVersionedEvents.CacheWrite(r.ctx, r.PropertyID(), int(r.EventVersion()), string(resolverType), gobData)
+		cacheError = PersistedVersionedEvents.CacheWrite(r.ctx, r.PropertyID(), int(r.EventVersion()), string(resolverType), gobData)
 		if cacheError != nil {
 			Logger.LogWarningf("cache rollups write error: %+v", cacheError)
 		}

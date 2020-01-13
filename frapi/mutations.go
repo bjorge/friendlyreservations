@@ -55,7 +55,7 @@ func currentBaseProperty(ctx context.Context, email string, propertyID string) (
 
 	// get all events for the property
 	var err error
-	property.Events, err = persistedVersionedEvents.GetEvents(ctx, propertyID)
+	property.Events, err = PersistedVersionedEvents.GetEvents(ctx, propertyID)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func currentBaseProperty(ctx context.Context, email string, propertyID string) (
 	for _, rollup := range rollupTypes {
 		cacheReadKeys = append(cacheReadKeys, string(rollup))
 	}
-	cachedVersion, readData, cacheError := persistedVersionedEvents.CacheRead(ctx, propertyID, cacheReadKeys)
+	cachedVersion, readData, cacheError := PersistedVersionedEvents.CacheRead(ctx, propertyID, cacheReadKeys)
 	if cacheError != nil {
 		Logger.LogWarningf("cache error: %+v", cacheError)
 	}
@@ -113,7 +113,7 @@ func currentBaseProperty(ctx context.Context, email string, propertyID string) (
 
 	if property.EmailMap == nil {
 		// get email map from db since not cached
-		property.EmailMap, err = persistedEmailStore.GetEmailMap(ctx, propertyID)
+		property.EmailMap, err = PersistedEmailStore.GetEmailMap(ctx, propertyID)
 		if err != nil {
 			return nil, err
 		}
@@ -122,7 +122,7 @@ func currentBaseProperty(ctx context.Context, email string, propertyID string) (
 		if cacheError != nil {
 			Logger.LogWarningf("cache gob from email map error: %+v", cacheError)
 		} else {
-			persistedVersionedEvents.CacheWrite(ctx, propertyID, int(propertyResolver.EventVersion()), emailMapCacheKeyName, gobData)
+			PersistedVersionedEvents.CacheWrite(ctx, propertyID, int(propertyResolver.EventVersion()), emailMapCacheKeyName, gobData)
 		}
 	}
 
@@ -222,7 +222,7 @@ func commitChanges(ctx context.Context, propertyID string, eventVersion int32,
 	// if err != nil {
 	// 	return nil, err
 	// }
-	_, err := persistedVersionedEvents.NewPropertyEvents(ctx, propertyID, key, eventList, false)
+	_, err := PersistedVersionedEvents.NewPropertyEvents(ctx, propertyID, key, eventList, false)
 	if err != nil {
 		return nil, err
 	}

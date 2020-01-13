@@ -40,11 +40,11 @@ func (r *Resolver) DeleteProperty(ctx context.Context, args *deletePropertyArgs)
 // internalDeleteProperty is called from DeleteProperty and the cron job
 func (r *Resolver) internalDeleteProperty(ctx context.Context, propertyID string) (bool, error) {
 
-	err := persistedVersionedEvents.DeleteProperty(ctx, propertyID, persistedPropertyList)
+	err := PersistedVersionedEvents.DeleteProperty(ctx, propertyID, PersistedPropertyList)
 	if err != nil {
 		return false, err
 	}
-	err = persistedEmailStore.DeleteEmails(ctx, propertyID)
+	err = PersistedEmailStore.DeleteEmails(ctx, propertyID)
 	if err != nil {
 		return false, err
 	}
@@ -86,7 +86,7 @@ func (r *Resolver) CreateProperty(ctx context.Context, args *struct{ Input *mode
 	}
 
 	// create the first events
-	nextPropertyTransactionKey, err := persistedPropertyList.GetNextVersion(ctx)
+	nextPropertyTransactionKey, err := PersistedPropertyList.GetNextVersion(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (r *Resolver) CreateProperty(ctx context.Context, args *struct{ Input *mode
 	args.Input.AuthorUserId = userID
 	firstEvents, err := CreateNewPropertyEvents(ctx, u.Email, userID, args.Input)
 
-	_, err = persistedVersionedEvents.CreateProperty(ctx, propertyID, firstEvents, persistedPropertyList, nextPropertyTransactionKey)
+	_, err = PersistedVersionedEvents.CreateProperty(ctx, propertyID, firstEvents, PersistedPropertyList, nextPropertyTransactionKey)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func CreateNewPropertyEvents(ctx context.Context, email string, userID string, n
 	// default version
 	newVersion := &models.NewVersionEvent{Version: 1}
 
-	emailRecord, err := persistedEmailStore.CreateEmail(ctx, newProperty.PropertyId, email)
+	emailRecord, err := PersistedEmailStore.CreateEmail(ctx, newProperty.PropertyId, email)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func CreateNewPropertyEvents(ctx context.Context, email string, userID string, n
 		State: models.ACCEPTED, IsAdmin: true, IsMember: newProperty.IsMember, IsSystem: false, CreateDateTime: frdate.CreateDateTimeUTC(),
 		AuthorUserId: userID, Email: ""}
 
-	emailRecordSystemUser, err := persistedEmailStore.CreateEmail(ctx, newProperty.PropertyId, utilities.SystemEmail)
+	emailRecordSystemUser, err := PersistedEmailStore.CreateEmail(ctx, newProperty.PropertyId, utilities.SystemEmail)
 	if err != nil {
 		return nil, err
 	}

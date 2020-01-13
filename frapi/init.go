@@ -3,19 +3,30 @@ package frapi
 import (
 	"encoding/gob"
 
-	"github.com/bjorge/friendlyreservations/persist"
+	"github.com/bjorge/friendlyreservations/cookies"
+	"github.com/bjorge/friendlyreservations/logger"
 	"github.com/bjorge/friendlyreservations/platform"
 )
 
 // Logger is the logger for the platform implementation
-var Logger platform.Logger
+var Logger = logger.New()
 
-var persistedEmailStore = persist.NewPersistedEmailStore(false)
-var persistedVersionedEvents = persist.NewPersistedVersionedEvents(false)
-var persistedPropertyList = persist.NewPersistedPropertyList(false)
+// PersistedEmailStore manages the persisted user emails
+var PersistedEmailStore platform.PersistedEmailStore
+
+// PersistedVersionedEvents is the list of persisted events
+var PersistedVersionedEvents platform.PersistedVersionedEvents
+
+// PersistedPropertyList is the list of persisted properties
+var PersistedPropertyList platform.PersistedPropertyList
+
+// FrapiCookies contains helper functions for setting and getting cookies
+var FrapiCookies *cookies.AuthCookies
 
 // init intializes the data structures for gob serialization
 func init() {
+	FrapiCookies = cookies.NewCookies()
+
 	gob.Register(&PropertyExport{})
 	gob.Register(&UserRollup{})
 	gob.Register(&LedgerRollup{})

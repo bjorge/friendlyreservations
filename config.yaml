@@ -1,0 +1,14 @@
+DEFAULT_SYSTEM_EMAIL: 'noreply@friendlyreservations.com'
+DEFAULT_SYSTEM_NAME: 'Friendly Reservations'
+TEST_USER_EMAIL: 'joe@test.com'
+ALLOW_NEW_PROPERTY: 'true'
+IMPORT_FILE_NAME: ''
+ALLOW_DELETE_PROPERTY: 'true'
+# set hash to at least 32 byte value (better 64)
+PLATFORM_AUTH_COOKIE_HASH: 'bf1166bda683331d3bdea2c40e599f75'
+# in production set secure to true, false on local host development
+PLATFORM_SECURE: 'false'
+# for npm start, use the default port 3000 to allow cors
+PLATFORM_CORS_ORIGIN_URI: 'http://penguin.linux.test:3001'
+# in production, set duration appropriately, ex. 1440m
+PLATFORM_SESSION_DURATION: '60m'
