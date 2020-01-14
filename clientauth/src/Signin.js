@@ -22,11 +22,12 @@ class Signin extends Component {
     }
 
     render() {
-        const apolloClient = this.props.appStateStore.apolloClient;
-        const showModal = this.props.showModal;
+        var apolloClient = this.props.appStateStore.apolloHomeClient;
+        var showModal = this.props.showModal;
 
+        console.log("query for the login");
         return (
-            <Query client={apolloClient} query={Signin.loginGgqlRequest()} fetchPolicy='no-cache'>
+            <Query client={apolloClient} query={Signin.loginGgqlRequest()}>
                 {({ loading, error, data }) => {
                     if (loading)
                         return (<Spinner />);

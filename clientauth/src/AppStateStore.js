@@ -137,6 +137,7 @@ export default class AppStateStore {
   }
 
   clearAll() {
+    console.log("clearing all cached property information");
     this.propertyId = null;
     this.propertyView = null;
     this.property = null;
@@ -161,10 +162,13 @@ export default class AppStateStore {
 
   get apolloClient() {
     if (this.propertyId == null) {
+      console.log("using apolloHomeClient");
       return this.apolloHomeClient;
     } else if (this.propertyView === 'ADMIN') {
+      console.log("using apolloAdminClient");
       return this.apolloAdminClient;
     } else {
+      console.log("using apolloMemberClient");
       return this.apolloMemberClient;
     }
   }
@@ -188,6 +192,8 @@ decorate(AppStateStore, {
   // the current view of the property (member or admin)
   propertyView: observable,
   propertyEventVersion: observable,
+
+  apolloHomeClient: observable,
 
   setAuthenticated: action,
 

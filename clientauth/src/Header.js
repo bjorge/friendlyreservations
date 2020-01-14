@@ -67,11 +67,13 @@ class Header extends Component {
     displayLogoutModal() {
         console.log("Header: logout called, close navbar");
         this.closeNavbar();
+        this.props.appStateStore.clearAll();
         this.props.logoutCallback();
     }
 
     turnOffModals = () => {
         this.setState({ showLogoutModal: false });
+        this.setState({ showSigninModal: false });
         this.closeNavbar();
     }
 
