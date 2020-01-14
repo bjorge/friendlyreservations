@@ -9,6 +9,8 @@ PLATFORM_AUTH_COOKIE_HASH: 'bf1166bda683331d3bdea2c40e599f75'
 # in production set secure to true, false on local host development
 PLATFORM_SECURE: 'false'
 # for npm start, use the default port 3000 to allow cors
-PLATFORM_CORS_ORIGIN_URI: 'http://penguin.linux.test:3001'
+PLATFORM_CORS_ORIGIN_URI: 'http://localhost:3000'
 # in production, set duration appropriately, ex. 1440m
 PLATFORM_SESSION_DURATION: '60m'
+# the host URI (including scheme and optionally port)
+PLATFORM_DESTINATION_URI: 'http://localhost:8080'

@@ -2,15 +2,15 @@ import React from 'react'
 import Header from './Header'
 import Main from './Main'
 
-import { HashRouter } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 
 const App = () => (
-  <HashRouter>
+  <Router>
     <div>
       <Header />
       <Main />
     </div>
-  </HashRouter>
+  </Router>
 )
 
 export default App

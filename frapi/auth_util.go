@@ -31,20 +31,38 @@ func GetUser(ctx context.Context) *User {
 	return nil
 }
 
-// LogoutURL returns a URL the client can use to logout
-func LogoutURL(ctx context.Context, dest string) (string, error) {
+// LogoutURL returns a url used by the client to logout
+func (r *Resolver) LogoutURL(ctx context.Context, args *struct {
+	Dest string
+}) (*string, error) {
+	// url, err := LogoutURL(ctx, args.Dest)
+	// return &url, err
 	currentUser := GetUser(ctx)
 	if currentUser != nil {
 		Logger.LogDebugf("Logout request for user: %+v", currentUser.Email)
 	} else {
-		Logger.LogDebugf("Logout request with not current user")
+		Logger.LogDebugf("Logout request with no current user")
 	}
 
 	Logger.LogWarningf("LogoutURL not implemented")
 
-	return "http://localhost:8080/needtoimplement", nil
-	// // propably hard to have no current user since protected yaml setting requires
-	// // a user for this method...
-	// url, err := user.LogoutURL(ctx, dest)
-	// return url, err
+	url := "http://localhost:8080/needtoimplement"
+
+	return &url, nil
+}
+
+// LoginURL returns a URL the client can use to login
+func (r *Resolver) LoginURL(ctx context.Context, args *struct {
+	Dest string
+}) (*string, error) {
+	currentUser := GetUser(ctx)
+	if currentUser != nil {
+		Logger.LogDebugf("Logout request for user: %+v", currentUser.Email)
+	} else {
+		Logger.LogDebugf("Logout request with no current user")
+	}
+
+	url := destinationURI + "/login"
+
+	return &url, nil
 }

@@ -21,14 +21,6 @@ type DuplicateDetectionEvent interface {
 	GetForVersion() int32
 }
 
-// LogoutURL returns a url used by the client to logout
-func (r *Resolver) LogoutURL(ctx context.Context, args *struct {
-	Dest string
-}) (*string, error) {
-	url, err := LogoutURL(ctx, args.Dest)
-	return &url, err
-}
-
 func emailMapFromGob(gobData []byte) (map[string]platform.PersistedEmail, error) {
 	dec := gob.NewDecoder(bytes.NewBuffer(gobData))
 	emailMap := make(map[string]platform.PersistedEmail)

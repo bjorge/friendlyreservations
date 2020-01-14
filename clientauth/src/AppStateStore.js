@@ -94,6 +94,8 @@ const homeClient = new ApolloClient({
 });
 
 export default class AppStateStore {
+  // authenticated (logged in)
+  authenticated = null;
   // propertyId is set by the property selector
   propertyId = null;
   // property is set by the property home page
@@ -108,6 +110,10 @@ export default class AppStateStore {
   apolloAdminClient = adminClient;
   apolloMemberClient = memberClient;
   apolloHomeClient = homeClient;
+
+  setAuthenticated(isLoggedIn) {
+    this.authenticated = isLoggedIn;
+  }
 
   setPropertyView(view) {
     // set to 'MEMBER' or 'ADMIN'
@@ -171,6 +177,9 @@ export default class AppStateStore {
 }
 
 decorate(AppStateStore, {
+  // the authenticated state (true or false)
+  authenticated: observable,
+  
   // the currently used property (can be set to null when at property selection page)
   propertyId: observable,
   // the current property
@@ -179,6 +188,8 @@ decorate(AppStateStore, {
   // the current view of the property (member or admin)
   propertyView: observable,
   propertyEventVersion: observable,
+
+  setAuthenticated: action,
 
   setPropertyId: action,
   setProperty: action,

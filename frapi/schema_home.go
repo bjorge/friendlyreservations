@@ -11,6 +11,8 @@ var HomeSchema = `
 	type Query {
 		# normal users query which properties they have
 		properties(): [Property]!
+		# return a login url passing in dest for final destination after the login
+		loginURL(dest: String!): String
 		# return a logout url passing in dest for final destination after the logout
 		logoutURL(dest: String!): String
 		# settings constraints for creating a new property

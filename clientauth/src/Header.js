@@ -21,6 +21,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { faTimes } from '@fortawesome/free-solid-svg-icons'
 
+import Signin from './Signin';
+
+
 // make the button link line up with the navlinks
 var buttonStyle = {
     margin: '0',
@@ -43,11 +46,21 @@ class Header extends Component {
         this.state = {
             isOpen: false,
             showLogoutModal: false,
+            showSigninModal: false,
         };
+
+        this.displaySigninModal = this.displaySigninModal.bind(this);
+
     }
     toggle() {
         this.setState({
             isOpen: !this.state.isOpen
+        });
+    }
+
+    displaySigninModal() {
+        this.setState({
+            showSigninModal: true
         });
     }
 
@@ -63,9 +76,9 @@ class Header extends Component {
     }
 
     closeNavbar() {
-       // if (this.state.isOpen === true) {
-            this.toggle();
-       // }
+        // if (this.state.isOpen === true) {
+        this.toggle();
+        // }
     }
 
     setAdminView = () => {
@@ -79,11 +92,17 @@ class Header extends Component {
     }
 
     render() {
+        const authenticated = this.props.appStateStore.authenticated;
         const memberView = this.props.appStateStore.propertyView === 'MEMBER';
         const adminView = this.props.appStateStore.propertyView === 'ADMIN';
         const propertyId = this.props.appStateStore.propertyId ? this.props.appStateStore.propertyId : null;
         const isAdmin = this.props.appStateStore.me ? this.props.appStateStore.me.isAdmin : false;
         const isMember = this.props.appStateStore.me ? this.props.appStateStore.me.isMember : false;
+
+        authenticated ? console.log("Header: authenticated true") : console.log("Header: authenticated false");
+        memberView ? console.log("Header: member view true") : console.log("Header: member view false");
+        adminView ? console.log("Header: admin view true") : console.log("Header: admin view false");
+        propertyId ? console.log("Header:  id set") : console.log("Header: property id not set");
 
         return (
             <Navbar className="bg-dark navbar-dark" light >
@@ -94,7 +113,21 @@ class Header extends Component {
                 <NavbarBrand href="/" className="mx-auto">Friendly Reservations</NavbarBrand>
                 <Collapse isOpen={this.state.isOpen} navbar>
                     <Nav className="ml-auto" navbar>
-                        {propertyId === null &&
+                        {!authenticated &&
+                            <div>
+                                <NavItem>
+                                    <NavLink exact to='/splashhome' onClick={this.closeNavbar}>Home</NavLink>
+                                </NavItem>
+                                <NavItem>
+                                    <Signin showModal={this.state.showSigninModal} exitModal={this.turnOffModals} />
+                                    <Button color="link" style={buttonStyle} onClick={() => this.displaySigninModal()}>Signin</Button>
+                                </NavItem>
+                                <NavItem>
+                                    <NavLink exact to='/about' onClick={this.closeNavbar}>About</NavLink>
+                                </NavItem>
+                            </div>
+                        }
+                        {authenticated && propertyId === null &&
                             <div>
                                 <NavItem>
                                     <NavLink exact to='/propertyselect' onClick={this.closeNavbar}>Select Property</NavLink>
@@ -111,7 +144,7 @@ class Header extends Component {
                                 </NavItem>
                             </div>
                         }
-                        {propertyId !== null &&
+                        {authenticated && propertyId !== null &&
                             <div>
                                 <NavItem>
                                     <NavLink exact to='/propertyhome' onClick={this.closeNavbar}>Home</NavLink>

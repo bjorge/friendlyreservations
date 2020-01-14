@@ -22,6 +22,7 @@ import NotificationsView from './NotificationsView';
 import Settings from './Settings';
 import AdminReservations from './AdminReservations';
 import AdminAdvanced from './AdminAdvanced';
+import SplashHome from './SplashHome';
 
 // import Logout from './Logout';
 
@@ -45,6 +46,7 @@ class Main extends Component {
                 <Switch>
                     <Route exact path='/' component={PropertySelect} />
                     <Route path='/home' component={HomeView} />
+                    <Route path='/splashhome' component={SplashHome} />
                     <Route path='/about' component={AboutView} />
                     <Route path='/listproperties' component={ListProperties} />
                     <Route path='/propertyselect' component={PropertySelect} />
