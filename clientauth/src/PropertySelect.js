@@ -189,15 +189,13 @@ class PropertySelect extends Component {
                 <CreatePropertyModal userConstraints={updateUserConstraints} settingsConstraints={updateSettingsConstraints} showForm={this.state.showCreatePropertyModal} exitModal={this.turnOffModals} />
                 {updateSettingsConstraints.allowNewProperty === true && <Card key="createProperty">
                   <CardHeader>It looks like you are not a member of any properties.
-                        Click <Button style={buttonStyle} color="link" onClick={() => this.displayCreatePropertyModal()}>here</Button> to create a new property
-                        or click <Button style={buttonStyle} color="link" onClick={() => this.displayLogoutModal()}>here</Button> to logout and then try logging in
-as a different user.
+                        Click <Button style={buttonStyle} color="link" onClick={() => this.displayCreatePropertyModal()}>here</Button> to create a new property. 
+                        Or if you logged in as the wrong user, then logout and login again as the correct user.
                   </CardHeader>
                 </Card>}
                 {updateSettingsConstraints.allowNewProperty === false && <Card key="importProperty">
                   <CardHeader>It looks like you are not a member of any properties.
-                        Click <Button style={buttonStyle} color="link" onClick={() => this.displayLogoutModal()}>here</Button> to logout and then try logging in
-as a different user.
+                        If you logged in as the wrong user, then logout and login again as the correct user.
                   </CardHeader>
                 </Card>}
 
