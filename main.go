@@ -106,8 +106,10 @@ func main() {
 		redirectURL := "/"
 		if corsOriginURI != "" {
 			redirectURL = corsOriginURI + redirectURL
+			log.LogDebugf("redirect to cors origin")
 		}
 
+		log.LogDebugf("redirect to: %v", redirectURL)
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 	}))
 
