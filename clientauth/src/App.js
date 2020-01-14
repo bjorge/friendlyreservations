@@ -1,15 +1,16 @@
 import React from 'react'
-import Header from './Header'
-import Main from './Main'
+
+import AuthCookies from './AuthCookies'
 
 import { BrowserRouter as Router } from 'react-router-dom';
 
 const App = () => (
   <Router>
-    <div>
+    <AuthCookies />
+    {/* <div>
       <Header />
       <Main />
-    </div>
+    </div> */}
   </Router>
 )
 

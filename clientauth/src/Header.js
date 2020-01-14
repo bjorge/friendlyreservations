@@ -65,9 +65,9 @@ class Header extends Component {
     }
 
     displayLogoutModal() {
-        this.setState({
-            showLogoutModal: true
-        });
+        console.log("Header: logout called, close navbar");
+        this.closeNavbar();
+        this.props.logoutCallback();
     }
 
     turnOffModals = () => {
@@ -92,18 +92,18 @@ class Header extends Component {
     }
 
     render() {
-        const authenticated = this.props.appStateStore.authenticated;
+        //const authenticated = this.props.appStateStore.authenticated;
         const memberView = this.props.appStateStore.propertyView === 'MEMBER';
         const adminView = this.props.appStateStore.propertyView === 'ADMIN';
         const propertyId = this.props.appStateStore.propertyId ? this.props.appStateStore.propertyId : null;
         const isAdmin = this.props.appStateStore.me ? this.props.appStateStore.me.isAdmin : false;
         const isMember = this.props.appStateStore.me ? this.props.appStateStore.me.isMember : false;
+        const authenticated = this.props.authenticated;
 
         authenticated ? console.log("Header: authenticated true") : console.log("Header: authenticated false");
         memberView ? console.log("Header: member view true") : console.log("Header: member view false");
         adminView ? console.log("Header: admin view true") : console.log("Header: admin view false");
         propertyId ? console.log("Header:  id set") : console.log("Header: property id not set");
-
         return (
             <Navbar className="bg-dark navbar-dark" light >
                 <NavbarToggler onClick={this.toggle} >
