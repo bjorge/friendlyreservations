@@ -119,23 +119,23 @@ func CreateNewPropertyEvents(ctx context.Context, email string, userID string, n
 	// default version
 	newVersion := &models.NewVersionEvent{Version: 1}
 
-	emailRecord, err := PersistedEmailStore.CreateEmail(ctx, newProperty.PropertyId, email)
+	emailID, err := PersistedEmailStore.CreateEmail(ctx, newProperty.PropertyId, email)
 	if err != nil {
 		return nil, err
 	}
 
-	newUser := &models.NewUserInput{Nickname: newProperty.NickName, EmailId: emailRecord.EmailID, UserId: userID,
+	newUser := &models.NewUserInput{Nickname: newProperty.NickName, EmailId: emailID, UserId: userID,
 		State: models.ACCEPTED, IsAdmin: true, IsMember: newProperty.IsMember, IsSystem: false, CreateDateTime: frdate.CreateDateTimeUTC(),
 		AuthorUserId: userID, Email: ""}
 
-	emailRecordSystemUser, err := PersistedEmailStore.CreateEmail(ctx, newProperty.PropertyId, utilities.SystemEmail)
+	emailSystemUserID, err := PersistedEmailStore.CreateEmail(ctx, newProperty.PropertyId, utilities.SystemEmail)
 	if err != nil {
 		return nil, err
 	}
 
 	userIDSystem := utilities.NewGUID()
 
-	newSystemUser := &models.NewUserInput{Nickname: "Friendly Reservations", EmailId: emailRecordSystemUser.EmailID, UserId: userIDSystem,
+	newSystemUser := &models.NewUserInput{Nickname: "Friendly Reservations", EmailId: emailSystemUserID, UserId: userIDSystem,
 		State: models.ACCEPTED, IsAdmin: false, IsMember: false, IsSystem: true, CreateDateTime: frdate.CreateDateTimeUTC(),
 		AuthorUserId: userID, Email: ""}
 

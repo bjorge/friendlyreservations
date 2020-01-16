@@ -45,7 +45,8 @@ type Property struct {
 	PropertyID     string
 	CreateDateTime string
 
-	EmailMap map[string]platform.PersistedEmail
+	// map of email ids to emails
+	EmailMap map[string]string
 
 	// reference the events pulled from the database
 	Events []platform.VersionedEvent
@@ -78,14 +79,14 @@ func (r *Resolver) Properties(ctx context.Context) ([]*PropertyResolver, error) 
 	}
 
 	// get all the properties
-	emailRecords, err := PersistedEmailStore.GetPropertiesByEmail(ctx, u.Email)
+	properties, err := PersistedEmailStore.GetPropertiesByEmail(ctx, u.Email)
 	//ids, err := utilities.PersistedPropertyList.GetProperties(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, emailRecord := range emailRecords {
-		propertyResolver, err := currentBaseProperty(ctx, u.Email, emailRecord.PropertyID)
+	for _, propertyID := range properties {
+		propertyResolver, err := currentBaseProperty(ctx, u.Email, propertyID)
 		if err != nil {
 			return nil, err
 		}

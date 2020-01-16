@@ -1,0 +1,8 @@
+# set hash to at least 32 byte value (better 64)
+PLATFORM_AUTH_COOKIE_HASH: 'bf1166bda683331d3bdea2c40e599f75'
+# in production set secure to true, false on local host development
+PLATFORM_SECURE: 'false'
+# in production, set duration appropriately, ex. 1440m
+PLATFORM_SESSION_DURATION: '60m'
+# the host URI (including scheme and optionally port)
+PLATFORM_DESTINATION_URI: 'http://localhost:8080'

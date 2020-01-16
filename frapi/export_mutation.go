@@ -53,8 +53,8 @@ func (r *Resolver) exportInternal(ctx context.Context, property *PropertyResolve
 	export := &PropertyExport{}
 	export.Events = property.property.Events
 	emailMap := make(map[string]string)
-	for _, record := range property.property.EmailMap {
-		emailMap[record.EmailID] = record.Email
+	for key, value := range property.property.EmailMap {
+		emailMap[key] = value
 	}
 	export.EmailMap = emailMap
 

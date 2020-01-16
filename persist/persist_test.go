@@ -79,25 +79,21 @@ func testCreateEmail(t *testing.T, unitTest bool) {
 	propertyID := "id123"
 	email := "test@testing.com"
 
-	record1, err := persistedEmailStore.CreateEmail(ctx, propertyID, email)
+	emailID1, err := persistedEmailStore.CreateEmail(ctx, propertyID, email)
 	if err != nil {
+		t.Log("CreateEmail failed")
 		t.Fatal(err)
 	}
 
-	if record1.Email != email {
-		t.Fatal(errors.New("email in created record does not match"))
-	}
+	t.Logf("CreateEmail emailID is: %v", emailID1)
 
-	record2, err := persistedEmailStore.GetEmail(ctx, propertyID, email)
+	emailID2, err := persistedEmailStore.GetEmail(ctx, propertyID, email)
 	if err != nil {
+		t.Log("GetEmail failed")
 		t.Fatal(err)
 	}
-	if record1.EmailID != record2.EmailID {
-		t.Fatal(errors.New("email id does not match"))
-	}
-
-	if record1.Email != record2.Email {
-		t.Fatal(errors.New("emails do not match"))
+	if emailID1 != emailID2 {
+		t.Fatal(errors.New("email ids do not match"))
 	}
 
 	ids, err := persistedEmailStore.GetPropertiesByEmail(ctx, email)
@@ -110,7 +106,7 @@ func testCreateEmail(t *testing.T, unitTest bool) {
 		t.Fatal(errors.New("search for properties by email failed"))
 	}
 
-	if ids[0].PropertyID != propertyID {
+	if ids[0] != propertyID {
 		t.Fatal(errors.New("wrong propertyId from GetPropertiesByEmail"))
 	}
 
@@ -119,7 +115,8 @@ func testCreateEmail(t *testing.T, unitTest bool) {
 		t.Fatal(err)
 	}
 
-	if emailMap[ids[0].EmailID].Email != email {
+	if emailMap[emailID1] != email {
+		t.Logf("expected: %v got: %v", email, emailMap[emailID1])
 		t.Fatal(errors.New("email map does not work"))
 	}
 
@@ -391,17 +388,17 @@ func testRestoreEmail(t *testing.T, unitTest bool) {
 	propertyID := "id1234"
 	email := "test1@testing.com"
 
-	_, err = persistedEmailStore.CreateEmail(ctx, propertyID, email)
+	emailID1, err := persistedEmailStore.CreateEmail(ctx, propertyID, email)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	record1, err := persistedEmailStore.GetEmail(ctx, propertyID, email)
+	emailID2, err := persistedEmailStore.GetEmail(ctx, propertyID, email)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if record1.Email != email {
+	if emailID1 != emailID2 {
 		t.Fatal(errors.New("email does not match"))
 	}
 
@@ -411,22 +408,30 @@ func testRestoreEmail(t *testing.T, unitTest bool) {
 	}
 
 	emailBackup := make(map[string]string)
-	emailBackup[record1.EmailID] = record1.Email
+	emailBackup[emailID1] = email
 	err = persistedEmailStore.RestoreEmails(ctx, propertyID, emailBackup)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	record2, err := persistedEmailStore.GetEmail(ctx, propertyID, email)
+	emailID3, err := persistedEmailStore.GetEmail(ctx, propertyID, email)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if record2.EmailID != record1.EmailID {
+	if emailID1 != emailID3 {
 		t.Fatal(errors.New("email id does not match"))
 	}
 
-	if record2.Email != record1.Email {
-		t.Fatal(errors.New("email does not match"))
+	emailMap, err := persistedEmailStore.GetEmailMap(ctx, propertyID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(emailMap) == 0 {
+		t.Fatal(errors.New("after restore email map is empty"))
+	}
+
+	if emailMap[emailID1] != email {
+		t.Fatal(errors.New("email does not match after restore"))
 	}
 }

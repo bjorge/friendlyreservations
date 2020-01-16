@@ -29,24 +29,15 @@ type PersistedVersionedEvents interface {
 	CacheDelete(ctx context.Context, propertyID string, key string) error
 }
 
-// BUG(bjorge): put this into persist package
-
-// PersistedEmail is the structure used to store an email address and other PII information
-type PersistedEmail struct {
-	EmailID    string `datastore:"EmailId"`    // legacy name
-	Email      string `datastore:"Email"`      // legacy name
-	PropertyID string `datastore:"PropertyId"` // legacy name
-}
-
 // BUG(bjorge): return a struct or just the email that is not a persist package object
 
 // PersistedEmailStore is the interface for accessing the store of email addresses
 type PersistedEmailStore interface {
-	CreateEmail(ctx context.Context, propertyID string, email string) (*PersistedEmail, error)
-	GetPropertiesByEmail(ctx context.Context, email string) ([]PersistedEmail, error)
-	GetEmailMap(ctx context.Context, propertyID string) (map[string]PersistedEmail, error)
+	CreateEmail(ctx context.Context, propertyID string, email string) (string, error)
+	GetPropertiesByEmail(ctx context.Context, email string) ([]string, error)
+	GetEmailMap(ctx context.Context, propertyID string) (map[string]string, error)
 	RestoreEmails(ctx context.Context, propertyID string, persistedEmails map[string]string) error
-	GetEmail(ctx context.Context, propertyID string, email string) (*PersistedEmail, error)
+	GetEmail(ctx context.Context, propertyID string, email string) (string, error)
 
 	// BUG(bjorge): change *bool to be bool in EmailExists()
 

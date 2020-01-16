@@ -21,9 +21,9 @@ type DuplicateDetectionEvent interface {
 	GetForVersion() int32
 }
 
-func emailMapFromGob(gobData []byte) (map[string]platform.PersistedEmail, error) {
+func emailMapFromGob(gobData []byte) (map[string]string, error) {
 	dec := gob.NewDecoder(bytes.NewBuffer(gobData))
-	emailMap := make(map[string]platform.PersistedEmail)
+	emailMap := make(map[string]string)
 	err := dec.Decode(&emailMap)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func emailMapFromGob(gobData []byte) (map[string]platform.PersistedEmail, error)
 	return emailMap, nil
 }
 
-func gobFromEmailMap(emailMap map[string]platform.PersistedEmail) ([]byte, error) {
+func gobFromEmailMap(emailMap map[string]string) ([]byte, error) {
 	stream := &bytes.Buffer{}
 	en := gob.NewEncoder(stream)
 	err := en.Encode(emailMap)

@@ -17,14 +17,20 @@ var configMap interface{}
 func init() {
 	fileName := "config.yaml"
 
+	// when running "go test" get the config from the testdata directory
 	if flag.Lookup("test.v") != nil {
 		fileName = "testdata/config.yaml"
 	}
 
+	// check if the config exists in the local directory
 	file, err := os.Open(fileName)
 	if err != nil {
 		log.LogDebugf("The config file %v does not exist, use environment variables instead", fileName)
+		return
 	}
+
+	// the config file exists, load it up
+	// BUG(bjorge): consider implementing a simple flat yaml reader for the config
 	configMap, err = goyaml2.Read(file)
 	if err != nil {
 		panic(err)

@@ -86,7 +86,7 @@ func (r *UserResolver) UserID() string {
 
 // Email is the email of the user
 func (r *UserResolver) Email() string {
-	email := r.property.property.EmailMap[r.rollup.EmailID].Email
+	email := r.property.property.EmailMap[r.rollup.EmailID]
 
 	return email
 }

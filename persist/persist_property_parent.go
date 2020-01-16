@@ -6,8 +6,6 @@ import (
 	"google.golang.org/appengine/datastore"
 )
 
-// var emailMap = new(sync.Map)
-
 var propertyParentKindPrefix = "X_PROPERTY_PARENT:"
 
 func propertyParentKey(ctx context.Context, propertyID string) (*datastore.Key, error) {

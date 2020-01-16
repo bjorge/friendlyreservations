@@ -90,11 +90,11 @@ func (r *Resolver) CreateUser(ctx context.Context, args *struct {
 		return nil, errors.New("email already exists: " + args.Input.Email)
 	}
 
-	record, err := PersistedEmailStore.CreateEmail(ctx, args.PropertyID, args.Input.Email)
+	emailID, err := PersistedEmailStore.CreateEmail(ctx, args.PropertyID, args.Input.Email)
 	if err != nil {
 		return nil, err
 	}
-	args.Input.EmailId = record.EmailID
+	args.Input.EmailId = emailID
 	args.Input.State = models.WAITING_ACCEPT
 	args.Input.Email = ""
 
@@ -199,19 +199,19 @@ func (r *Resolver) UpdateUser(ctx context.Context, args *struct {
 		}
 
 		if *exists {
-			record, err := PersistedEmailStore.GetEmail(ctx, args.PropertyID, args.Input.Email)
+			emailID, err := PersistedEmailStore.GetEmail(ctx, args.PropertyID, args.Input.Email)
 			if err != nil {
 				return nil, err
 			}
-			args.Input.EmailId = record.EmailID
+			args.Input.EmailId = emailID
 			args.Input.Email = ""
 			args.Input.State = models.WAITING_ACCEPT
 		} else {
-			record, err := PersistedEmailStore.CreateEmail(ctx, args.PropertyID, args.Input.Email)
+			emailID, err := PersistedEmailStore.CreateEmail(ctx, args.PropertyID, args.Input.Email)
 			if err != nil {
 				return nil, err
 			}
-			args.Input.EmailId = record.EmailID
+			args.Input.EmailId = emailID
 			args.Input.Email = ""
 			args.Input.State = models.WAITING_ACCEPT
 		}
