@@ -12,9 +12,6 @@ var SystemEmail string
 // SystemName is the default name for the system email
 var SystemName string
 
-// TestUserEmail is the email for a test user, only used when testing
-var TestUserEmail string
-
 // AllowNewProperty enables a new property to be created
 var AllowNewProperty bool
 
@@ -36,7 +33,7 @@ var TrialDuration time.Duration
 func init() {
 	SystemEmail = config.GetConfig("DEFAULT_SYSTEM_EMAIL")
 	SystemName = config.GetConfig("DEFAULT_SYSTEM_NAME")
-	TestUserEmail = config.GetConfig("TEST_USER_EMAIL")
+	//TestUserEmail = config.GetConfig("TEST_USER_EMAIL")
 	AllowNewProperty = config.GetConfig("ALLOW_NEW_PROPERTY") == "true"
 	AllowDeleteProperty = config.GetConfig("ALLOW_DELETE_PROPERTY") == "true"
 	ImportFileName = config.GetConfig("IMPORT_FILE_NAME")

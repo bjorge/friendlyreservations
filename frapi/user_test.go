@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 func TestUserResolver(t *testing.T) {
@@ -114,7 +113,9 @@ func testInvitationForEmail(t *testing.T, email string) {
 		t.Fatalf("TestUserResolver: expected a WAITING_ACCEPT but got: %+v", user.State())
 	}
 
-	utilities.SetTestUser(email)
+	// utilities.SetTestUser(email)
+	testUserEmail = email
+
 	property, err = resolver.AcceptInvitation(ctx, &struct {
 		PropertyID string
 		Input      *models.AcceptInvitationInput

@@ -65,7 +65,7 @@ const adminClient = new ApolloClient({
   //  `/graphql` endpoint on the same host
   // Pass the configuration option { uri: YOUR_GRAPHQL_API_URL } to the `HttpLink` to connect
   // to a different host
-  link: new HttpLink({ uri: baseGQLUrl + "/adminquery", credentials: 'same-origin', }),
+  link: new HttpLink({ uri: baseGQLUrl + "/adminquery", credentials: 'include', }),
   cache: cache,
   // defaultOptions: defaultOptions,
   connectToDevTools: true,
@@ -76,7 +76,7 @@ const memberClient = new ApolloClient({
   //  `/graphql` endpoint on the same host
   // Pass the configuration option { uri: YOUR_GRAPHQL_API_URL } to the `HttpLink` to connect
   // to a different host
-  link: new HttpLink({ uri: baseGQLUrl + "/memberquery", credentials: 'same-origin', }),
+  link: new HttpLink({ uri: baseGQLUrl + "/memberquery", credentials: 'include', }),
   cache: cache,
   // defaultOptions: defaultOptions,
   connectToDevTools: true,
@@ -87,7 +87,7 @@ const homeClient = new ApolloClient({
   //  `/graphql` endpoint on the same host
   // Pass the configuration option { uri: YOUR_GRAPHQL_API_URL } to the `HttpLink` to connect
   // to a different host
-  link: new HttpLink({ uri: baseGQLUrl + "/homequery", credentials: 'same-origin', }),
+  link: new HttpLink({ uri: baseGQLUrl + "/homequery", credentials: 'include', }),
   cache: cache,
   // defaultOptions: defaultOptions,
   connectToDevTools: true,

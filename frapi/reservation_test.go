@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // BUG(bjorge): test non member reservation and test rates and test some constraint failures
@@ -40,7 +39,8 @@ func TestReservationResolverSmokeTest(t *testing.T) {
 
 	secondUserEmail := "newone@a.out"
 	property, newUser := createUser(ctx, t, resolver, property, secondUserEmail, "heythere")
-	utilities.SetTestUser(secondUserEmail)
+	//utilities.SetTestUser(secondUserEmail)
+	testUserEmail = secondUserEmail
 
 	property, reservations = createReservation(ctx, t, resolver, property, newUser.UserID(), today.AddDays(6).ToString(), today.AddDays(7).ToString())
 

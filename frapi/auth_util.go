@@ -3,8 +3,6 @@ package frapi
 import (
 	"context"
 	"strings"
-
-	"github.com/bjorge/friendlyreservations/utilities"
 )
 
 // User represents a user of the application.
@@ -13,11 +11,13 @@ type User struct {
 	Admin bool
 }
 
+var testUserEmail string
+
 // GetUser retrieves the email address of the logged in user
 func GetUser(ctx context.Context) *User {
-	if utilities.TestUserEmail != "" {
-		lowerCaseEmail := strings.ToLower(strings.TrimSpace(utilities.TestUserEmail))
-		Logger.LogDebugf("Found env user: %+v", lowerCaseEmail)
+	if testUserEmail != "" {
+		lowerCaseEmail := strings.ToLower(strings.TrimSpace(testUserEmail))
+		Logger.LogDebugf("Found unit test user: %+v", lowerCaseEmail)
 		return &User{Email: lowerCaseEmail, Admin: true}
 	}
 
@@ -35,18 +35,9 @@ func GetUser(ctx context.Context) *User {
 func (r *Resolver) LogoutURL(ctx context.Context, args *struct {
 	Dest string
 }) (*string, error) {
-	// url, err := LogoutURL(ctx, args.Dest)
-	// return &url, err
-	currentUser := GetUser(ctx)
-	if currentUser != nil {
-		Logger.LogDebugf("Logout request for user: %+v", currentUser.Email)
-	} else {
-		Logger.LogDebugf("Logout request with no current user")
-	}
+	Logger.LogWarningf("LogoutURL deprecated")
 
-	Logger.LogWarningf("LogoutURL not implemented")
-
-	url := "http://localhost:8080/needtoimplement"
+	url := "http://localhost:8080/deprecated"
 
 	return &url, nil
 }
@@ -55,14 +46,6 @@ func (r *Resolver) LogoutURL(ctx context.Context, args *struct {
 func (r *Resolver) LoginURL(ctx context.Context, args *struct {
 	Dest string
 }) (*string, error) {
-	currentUser := GetUser(ctx)
-	if currentUser != nil {
-		Logger.LogDebugf("Logout request for user: %+v", currentUser.Email)
-	} else {
-		Logger.LogDebugf("Logout request with no current user")
-	}
-
 	url := destinationURI + "/login"
-
 	return &url, nil
 }
