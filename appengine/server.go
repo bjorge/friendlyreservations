@@ -1,235 +1,226 @@
 package main
 
 import (
-	"encoding/json"
+	"bytes"
+	"context"
+	"fmt"
+	"html/template"
 	"net/http"
+	"os"
+	"path/filepath"
 
+	"github.com/bjorge/friendlyreservations/cookies"
 	"github.com/bjorge/friendlyreservations/frapi"
 	"github.com/bjorge/friendlyreservations/utilities"
+	"github.com/rs/cors"
+	graphqlupload "github.com/smithaitufe/go-graphql-upload"
+	"google.golang.org/appengine"
 
 	"github.com/graph-gophers/graphql-go"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/log"
+	"github.com/graph-gophers/graphql-go/relay"
 )
-
-var adminSchema *graphql.Schema
-var memberSchema *graphql.Schema
-var homeSchema *graphql.Schema
-
-func init() {
-	adminSchema = graphql.MustParseSchema(frapi.AdminSchema, &frapi.Resolver{})
-	memberSchema = graphql.MustParseSchema(frapi.MemberSchema, &frapi.Resolver{})
-	homeSchema = graphql.MustParseSchema(frapi.HomeSchema, &frapi.Resolver{})
-}
 
 func main() {
 	if utilities.SystemEmail == "" {
 		panic("DEFAULT_SYSTEM_EMAIL environment variable must be set, example set to noreply@mydomain.com in app.yaml")
 	}
-	http.Handle("/adminschema", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write(adminPage)
-	}))
 
-	http.Handle("/memberschema", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write(memberPage)
-	}))
+	// handle the gql playground pages
+	for uri, query := range map[string]string{
+		"/adminschema":  "adminquery",
+		"/memberschema": "memberquery",
+		"/homeschema":   "homequery"} {
+		gqlSchemaHTML := mustGetSchemaHTML("gqlschema.html", query)
+		http.Handle(uri, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Write(gqlSchemaHTML)
+		}))
+	}
 
-	http.Handle("/homeschema", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write(homePage)
-	}))
-
+	// handle the daily cron job
 	http.Handle("/dailycron", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := appengine.NewContext(r)
-		log.Infof(ctx, "Run daily cron")
-		err := frapi.DailyCron(ctx)
+		ctx, err := appengine.Namespace(ctx, namespace)
 		if err != nil {
-			log.Errorf(ctx, "Daily cron error: %+v", err)
+			panic(err)
+		}
+		log.LogInfof("Run daily cron in namespace %v", namespace)
+		err = frapi.DailyCron(ctx)
+		if err != nil {
+			log.LogErrorf("Daily cron error: %+v", err)
 		}
 	}))
 
-	// from example, does not handle OPTIONS request
-	// http.Handle("/query", &relay.Handler{Schema: schema})
+	// handle the graphql requests
+	for uri, schema := range map[string]*graphql.Schema{
+		"/homequery":   homeSchema,
+		"/adminquery":  adminSchema,
+		"/memberquery": memberSchema} {
 
-	// handle the OPTIONS request because app.yaml does not support CORS for non-static content
-	http.Handle("/adminquery", NewGraphqlHandler(adminSchema))
-	http.Handle("/memberquery", NewGraphqlHandler(memberSchema))
-	http.Handle("/homequery", NewGraphqlHandler(homeSchema))
+		// the gql handler
+		gqlRelayHandler := &relay.Handler{Schema: schema}
 
-	//log.Fatal(http.ListenAndServe(":8080", nil))
+		// chain in the upload handler
+		gqlHandler := graphqlupload.Handler(gqlRelayHandler)
 
-	appengine.Main() // Starts the server to receive requests
-}
+		// chain in the cors handler
+		if corsOriginURI != "" {
+			log.LogInfof("cors handler added for graphql for uri: %v with origin: %v", uri, corsOriginURI)
 
-// Handler is the http handler struct
-type Handler struct {
-	Schema *graphql.Schema
-}
+			corsHandler := cors.New(cors.Options{
+				AllowedOrigins: []string{corsOriginURI},
+				AllowedMethods: []string{
+					http.MethodPost,
+				},
+				AllowedHeaders:   []string{"*"},
+				AllowCredentials: true,
+			})
 
-// NewGraphqlHandler creates an new GraphQL API HTTP handler with the specified graphql schema
-func NewGraphqlHandler(s *graphql.Schema) *Handler {
-	return &Handler{Schema: s}
-}
-
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// dump, err := httputil.DumpRequest(r, true)
-	// if err != nil {
-	// 	http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
-	// 	return
-	// }
-	// fmt.Printf("%s", dump)
-
-	if utilities.AllowCrossDomainRequests {
-		if origin := r.Header.Get("Origin"); origin != "" {
-			w.Header().Set("Access-Control-Allow-Origin", origin)
+			gqlHandler = corsHandler.Handler(gqlHandler)
 		}
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, HEAD")
+		// chain in the gql context handler
+		http.Handle(uri, gqlMiddleware(gqlHandler))
+	}
 
-		if r.Method == http.MethodOptions {
-			w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+	// handle the test auth
+	http.Handle("/auth", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.LogDebugf("auth handler for localhost testing")
+		if r.Method != "POST" {
+			fmt.Fprintf(w, "hmm... not a post, try again")
 			return
 		}
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding")
+
+		if err := r.ParseForm(); err != nil {
+			fmt.Fprintf(w, "ParseForm err: %v", err)
+			return
+		}
+
+		email := r.FormValue("email")
+		if email == "" {
+			fmt.Fprintf(w, "hmm... empty email, try again")
+			return
+		}
+
+		// ok, this is just for testing, so assume a valid email
+		// (although any identifier ok for testing...)
+
+		// save auth credentials into cookies
+		frapi.FrapiCookies.SetCookies(w, email, false)
+
+		// go back to home
+		redirectURL := "/"
+		if corsOriginURI != "" {
+			redirectURL = corsOriginURI + redirectURL
+			log.LogDebugf("redirect to cors origin")
+		}
+
+		log.LogDebugf("redirect to: %v", redirectURL)
+		http.Redirect(w, r, redirectURL, http.StatusFound)
+	}))
+
+	// the login handler
+	http.Handle("/login", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.LogDebugf("login handler for localhost testing")
+		frapi.FrapiCookies.ClearCookies(w)
+
+		noCache(w)
+		var htmlContent = `
+			<html>
+				Local test login<br/>
+				<form action="/auth" method="post">
+					Email:<br/>
+					<input type="text" name="email" value=""><br/>
+					<input type="submit" value="Submit">
+				</form>
+			</html>`
+
+		fmt.Fprintf(w, htmlContent)
+	}))
+
+	// for production the spa is built and deployed to the spa directory
+	spa := SpaHandler{StaticPath: "spa", IndexPath: "index.html"}
+	http.Handle("/", spa)
+
+	appengine.Main() // Starts the server to receive requests
+
+}
+
+func gqlMiddleware(next http.Handler) http.Handler {
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx := appengine.NewContext(r)
+		ctx, err := appengine.Namespace(ctx, namespace)
+		if err != nil {
+			panic(err)
+		}
+		ctxWithValues := context.WithValue(ctx, cookies.WriterKey("writer"), w)
+		ctxWithValues = frapi.FrapiCookies.ContextWithCookies(ctxWithValues, r)
+		next.ServeHTTP(w, r.WithContext(ctxWithValues))
 	}
 
-	var params struct {
-		Query         string                 `json:"query"`
-		OperationName string                 `json:"operationName"`
-		Variables     map[string]interface{} `json:"variables"`
-	}
-	ctx := appengine.NewContext(r)
-	log.Debugf(ctx, "Server: start request %+v", r.RequestURI)
+	return http.HandlerFunc(fn)
+}
 
-	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+func mustGetSchemaHTML(fileName string, gqlPath string) []byte {
+	t := template.New(fileName)
+	t, err := t.ParseFiles(fileName)
+	if err != nil {
+		panic(err)
+	}
+
+	// refer to the gql handler above
+	var buffer bytes.Buffer
+	err = t.Execute(&buffer, struct{ Path string }{Path: gqlPath})
+	if err != nil {
+		panic(err)
+	}
+	return buffer.Bytes()
+}
+
+func noCache(w http.ResponseWriter) {
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
+}
+
+// SpaHandler implements the http.Handler interface, so we can use it
+// to respond to HTTP requests. The path to the static directory and
+// path to the index file within that static directory are used to
+// serve the SPA in the given static directory.
+type SpaHandler struct {
+	StaticPath string
+	IndexPath  string
+}
+
+// ServeHTTP inspects the URL path to locate a file within the static dir
+// on the SPA handler. If a file is found, it will be served. If not, the
+// file located at the index path on the SPA handler will be served. This
+// is suitable behavior for serving an SPA (single page application).
+func (h SpaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// get the absolute path to prevent directory traversal
+	path, err := filepath.Abs(r.URL.Path)
+	if err != nil {
+		// if we failed to get the absolute path respond with a 400 bad request
+		// and stop
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	response := h.Schema.Exec(ctx, params.Query, params.OperationName, params.Variables)
-	responseJSON, err := json.Marshal(response)
-	if err != nil {
+	// prepend the path with the path to the static directory
+	path = filepath.Join(h.StaticPath, path)
+
+	// check whether a file exists at the given path
+	_, err = os.Stat(path)
+	if os.IsNotExist(err) {
+		// file does not exist, serve index.html
+		http.ServeFile(w, r, filepath.Join(h.StaticPath, h.IndexPath))
+		return
+	} else if err != nil {
+		// if we got an error (that wasn't that the file doesn't exist) stating the
+		// file, return a 500 internal server error and stop
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	log.Debugf(ctx, "Server: end request")
-	w.Write(responseJSON)
+	// otherwise, use http.FileServer to serve the static dir
+	http.FileServer(http.Dir(h.StaticPath)).ServeHTTP(w, r)
 }
-
-// BUG(bjorge): admin page and member page should be the same except for the uri, so template it so
-var adminPage = []byte(`
-<!DOCTYPE html>
-<html>
-	<head>
-		<link href="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.11.11/graphiql.min.css" rel="stylesheet" />
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/es6-promise/4.1.1/es6-promise.auto.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/react/16.2.0/umd/react.production.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.2.0/umd/react-dom.production.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.11.11/graphiql.min.js"></script>
-	</head>
-	<body style="width: 100%; height: 100%; margin: 0; overflow: hidden;">
-		<div id="graphiql" style="height: 100vh;">Loading...</div>
-		<script>
-			function graphQLFetcher(graphQLParams) {
-				return fetch("/adminquery", {
-					method: "post",
-					body: JSON.stringify(graphQLParams),
-					credentials: "include",
-				}).then(function (response) {
-					return response.text();
-				}).then(function (responseBody) {
-					try {
-						return JSON.parse(responseBody);
-					} catch (error) {
-						return responseBody;
-					}
-				});
-			}
-
-			ReactDOM.render(
-				React.createElement(GraphiQL, {fetcher: graphQLFetcher}),
-				document.getElementById("graphiql")
-			);
-		</script>
-	</body>
-</html>
-`)
-
-var memberPage = []byte(`
-<!DOCTYPE html>
-<html>
-	<head>
-		<link href="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.11.11/graphiql.min.css" rel="stylesheet" />
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/es6-promise/4.1.1/es6-promise.auto.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/react/16.2.0/umd/react.production.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.2.0/umd/react-dom.production.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.11.11/graphiql.min.js"></script>
-	</head>
-	<body style="width: 100%; height: 100%; margin: 0; overflow: hidden;">
-		<div id="graphiql" style="height: 100vh;">Loading...</div>
-		<script>
-			function graphQLFetcher(graphQLParams) {
-				return fetch("/memberquery", {
-					method: "post",
-					body: JSON.stringify(graphQLParams),
-					credentials: "include",
-				}).then(function (response) {
-					return response.text();
-				}).then(function (responseBody) {
-					try {
-						return JSON.parse(responseBody);
-					} catch (error) {
-						return responseBody;
-					}
-				});
-			}
-
-			ReactDOM.render(
-				React.createElement(GraphiQL, {fetcher: graphQLFetcher}),
-				document.getElementById("graphiql")
-			);
-		</script>
-	</body>
-</html>
-`)
-
-var homePage = []byte(`
-<!DOCTYPE html>
-<html>
-	<head>
-		<link href="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.11.11/graphiql.min.css" rel="stylesheet" />
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/es6-promise/4.1.1/es6-promise.auto.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/react/16.2.0/umd/react.production.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.2.0/umd/react-dom.production.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.11.11/graphiql.min.js"></script>
-	</head>
-	<body style="width: 100%; height: 100%; margin: 0; overflow: hidden;">
-		<div id="graphiql" style="height: 100vh;">Loading...</div>
-		<script>
-			function graphQLFetcher(graphQLParams) {
-				return fetch("/homequery", {
-					method: "post",
-					body: JSON.stringify(graphQLParams),
-					credentials: "include",
-				}).then(function (response) {
-					return response.text();
-				}).then(function (responseBody) {
-					try {
-						return JSON.parse(responseBody);
-					} catch (error) {
-						return responseBody;
-					}
-				});
-			}
-
-			ReactDOM.render(
-				React.createElement(GraphiQL, {fetcher: graphQLFetcher}),
-				document.getElementById("graphiql")
-			);
-		</script>
-	</body>
-</html>
-`)
