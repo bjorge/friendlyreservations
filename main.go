@@ -59,8 +59,7 @@ func main() {
 
 		// chain in the cors handler
 		if corsOriginURI != "" {
-			log.LogInfof("cors handler added for graphql")
-			log.LogInfof("cors allowed origin is %v\n", corsOriginURI)
+			log.LogInfof("cors handler added for graphql for uri: %v with origin: %v", uri, corsOriginURI)
 
 			corsHandler := cors.New(cors.Options{
 				AllowedOrigins: []string{corsOriginURI},

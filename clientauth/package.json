@@ -34,7 +34,7 @@
   "scripts": {
     "start": "HOST=localhost react-scripts start",
     "build": "react-scripts build",
-    "postbuild": "rm -rf ../spa; mv build ../spa",
+    "postbuild": "rm -rf ../spa; cp -r build ../spa; rm -rf ../appengine/spa; cp -r build ../appengine/spa",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "storybook": "start-storybook -p 9009 -s public",

@@ -3,8 +3,10 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -19,6 +21,17 @@ import (
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
 )
+
+type googleUser struct {
+	ID            string `json:"id"`
+	Email         string `json:"email"`
+	VerifiedEmail string `json:"verified_email"`
+	Picture       string `json:"picture"`
+	HD            string `json:"hd"`
+	Name          string `json:"name"`
+	GivenName     string `json:"given_name"`
+	FamilyName    string `json:"family_name"`
+}
 
 func main() {
 	if utilities.SystemEmail == "" {
@@ -81,6 +94,57 @@ func main() {
 		http.Handle(uri, gqlMiddleware(gqlHandler))
 	}
 
+	// the local test auth handler, override in production
+	// note, use openid rather than google signin, more simple and secure according
+	// to google: https://developers.google.com/identity/protocols/OpenIDConnect
+	// see: https://github.com/plutov/packagemain/tree/master/11-oauth2
+	http.Handle("/login", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.LogDebugf("login handler (oauth)")
+
+		// uncomment if domain users are restricted (ex. g suite account members only)
+		// hdOption := oauth2.SetAuthURLParam("hd", hostedDomain)
+		// url := googleOauthConfig.AuthCodeURL(oauthStateString, hdOption)
+		url := googleOauthConfig.AuthCodeURL(oauthStateString)
+		log.LogDebugf("url for oauth is: %s", url)
+		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	}))
+
+	// handle the oauth callback
+	http.Handle("/oauth2callback", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.LogDebugf("oauth2callback handler")
+		originURI := destinationURI
+		if corsOriginURI != "" {
+			originURI = corsOriginURI
+		}
+
+		content, err := getUserInfo(r.FormValue("state"), r.FormValue("code"))
+		if err != nil {
+			log.LogErrorf("Get user info error: %+v", err)
+			http.Redirect(w, r, originURI+"/", http.StatusTemporaryRedirect)
+			return
+		}
+
+		log.LogDebugf("oauth2 callback json: %s", content)
+
+		var u googleUser
+		err = json.Unmarshal(content, &u)
+		if err != nil {
+			// Extract the user data
+			log.LogDebugf("email is: %+v", u.Email)
+			// BUG(bjorge): remove admin from the cookies!
+			frapi.FrapiCookies.SetCookies(w, u.Email, true)
+		} else {
+			log.LogErrorf("Unmarshal error: %+v", err)
+			http.Redirect(w, r, originURI+"/", http.StatusTemporaryRedirect)
+			return
+		}
+
+		// redirect here
+		http.Redirect(w, r, originURI+"/", http.StatusTemporaryRedirect)
+
+	}))
+
+	/* uncomment /auth and /login for testing if oauth not setup or having trouble
 	// handle the test auth
 	http.Handle("/auth", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.LogDebugf("auth handler for localhost testing")
@@ -117,7 +181,7 @@ func main() {
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 	}))
 
-	// the login handler
+	// the login handler for testing
 	http.Handle("/login", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.LogDebugf("login handler for localhost testing")
 		frapi.FrapiCookies.ClearCookies(w)
@@ -135,6 +199,7 @@ func main() {
 
 		fmt.Fprintf(w, htmlContent)
 	}))
+	*/
 
 	// for production the spa is built and deployed to the spa directory
 	spa := SpaHandler{StaticPath: "spa", IndexPath: "index.html"}
@@ -223,4 +288,28 @@ func (h SpaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// otherwise, use http.FileServer to serve the static dir
 	http.FileServer(http.Dir(h.StaticPath)).ServeHTTP(w, r)
+}
+
+func getUserInfo(state string, code string) ([]byte, error) {
+	if state != oauthStateString {
+		return nil, fmt.Errorf("invalid oauth state")
+	}
+
+	token, err := googleOauthConfig.Exchange(context.Background(), code)
+	if err != nil {
+		return nil, fmt.Errorf("code exchange failed: %s", err.Error())
+	}
+
+	response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed getting user info: %s", err.Error())
+	}
+
+	defer response.Body.Close()
+	contents, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed reading response body: %s", err.Error())
+	}
+
+	return contents, nil
 }

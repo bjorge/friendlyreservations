@@ -18,14 +18,15 @@ var log = logger.New()
 var namespace string
 
 var corsOriginURI string
+var destinationURI string
 
 var adminSchema *graphql.Schema
 var memberSchema *graphql.Schema
 var homeSchema *graphql.Schema
 
 // variables from environment
-var host string         // example "localhost:8080"
-var hostedDomain string // example "mydomain.com"
+var host string // example "localhost:8080"
+// var hostedDomain string // example "mydomain.com"
 var secure bool         // if true, use https, otherwise http (PLATFORM_SECURE)
 var clientID string     // the oauth client id
 var clientSecret string // the oauth client secret
@@ -52,21 +53,21 @@ func init() {
 		panic(fmt.Errorf("must define PLATFORM_NAMESPACE in app.yaml"))
 	}
 
+	destinationURI = config.GetConfig("PLATFORM_DESTINATION_URI")
+	if destinationURI == "" {
+		panic(fmt.Errorf("PLATFORM_DESTINATION_URI is not set"))
+	}
+
 	// load settings from environment
 	secure = os.Getenv("PLATFORM_SECURE") == "true"
 	host = os.Getenv("PLATFORM_HOST")
 	clientID = os.Getenv("PLATFORM_CLIENT_ID")
 	clientSecret = os.Getenv("PLATFORM_CLIENT_SECRET")
-	hostedDomain = os.Getenv("PLATFORM_HOSTED_DOMAIN")
+	//hostedDomain = os.Getenv("PLATFORM_HOSTED_DOMAIN")
 	//projectID := os.Getenv("PLATFORM_PROJECT_ID")
 
-	protocol := "https"
-	if !secure {
-		protocol = "http"
-	}
-
 	googleOauthConfig = &oauth2.Config{
-		RedirectURL:  protocol + "://" + host + "/oauth2callback",
+		RedirectURL:  destinationURI + "/oauth2callback",
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Scopes:       []string{"email", "profile"},

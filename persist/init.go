@@ -4,7 +4,11 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/bjorge/friendlyreservations/logger"
 )
+
+var logging = logger.New()
 
 // consolidateNumRecords means consolidate when this number of records exists in the datastore
 var consolidateNumRecords int

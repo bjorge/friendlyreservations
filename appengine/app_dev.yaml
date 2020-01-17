@@ -5,7 +5,7 @@ handlers:
   script: _go_app
 
 env_variables:
-  # see config.yaml in root directory for field descriptions
+  # see config.yaml in root directory for basic field descriptions
   DEFAULT_SYSTEM_EMAIL: 'noreply@friendlyreservations.com'
   DEFAULT_SYSTEM_NAME: 'Friendly Reservations'
   ALLOW_NEW_PROPERTY: 'true'
@@ -17,8 +17,12 @@ env_variables:
   PLATFORM_SESSION_DURATION: '60m'
   PLATFORM_DESTINATION_URI: 'http://localhost:8080'
 
-  # the datastore namespace
+  # the datastore/memcache namespace
   PLATFORM_NAMESPACE: 'app_dev'
+
+  # oauth keys
+  PLATFORM_CLIENT_ID: ''
+  PLATFORM_CLIENT_SECRET: ''
 
  
 
