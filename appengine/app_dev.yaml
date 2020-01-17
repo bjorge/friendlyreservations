@@ -18,11 +18,11 @@ env_variables:
   PLATFORM_DESTINATION_URI: 'http://localhost:8080'
 
   # the datastore/memcache namespace
-  PLATFORM_NAMESPACE: 'app_dev'
+  PLATFORM_NAMESPACE: 'fr_app_dev'
 
   # oauth keys
-  PLATFORM_CLIENT_ID: ''
-  PLATFORM_CLIENT_SECRET: ''
+  PLATFORM_CLIENT_ID: 'PUT YOUR AUTH KEY HERE'
+  PLATFORM_CLIENT_SECRET: 'PUT YOUR AUTH KEY HERE'
 
  
 

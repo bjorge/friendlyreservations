@@ -25,7 +25,6 @@ var memberSchema *graphql.Schema
 var homeSchema *graphql.Schema
 
 // variables from environment
-var host string // example "localhost:8080"
 // var hostedDomain string // example "mydomain.com"
 var secure bool         // if true, use https, otherwise http (PLATFORM_SECURE)
 var clientID string     // the oauth client id
@@ -60,11 +59,9 @@ func init() {
 
 	// load settings from environment
 	secure = os.Getenv("PLATFORM_SECURE") == "true"
-	host = os.Getenv("PLATFORM_HOST")
 	clientID = os.Getenv("PLATFORM_CLIENT_ID")
 	clientSecret = os.Getenv("PLATFORM_CLIENT_SECRET")
 	//hostedDomain = os.Getenv("PLATFORM_HOSTED_DOMAIN")
-	//projectID := os.Getenv("PLATFORM_PROJECT_ID")
 
 	googleOauthConfig = &oauth2.Config{
 		RedirectURL:  destinationURI + "/oauth2callback",

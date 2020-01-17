@@ -1,58 +1,33 @@
-runtime: go
-api_version: go1.9
+runtime: go111
 
 handlers:
-- url: /homeschema
-  secure: always
+- url: /(.*)
   script: _go_app
-  login: required
-- url: /memberschema
-  secure: always
-  script: _go_app
-  login: required
-- url: /adminschema
-  secure: always
-  script: _go_app
-  login: required
-- url: /homequery
-  secure: always
-  script: _go_app
-  login: required
-- url: /memberquery
-  secure: always
-  script: _go_app
-  login: required
-- url: /adminquery
-  secure: always
-  script: _go_app
-  login: required
-- url: /dailycron
-  script: _go_app
-  login: admin
-- url: /fr/
-  secure: always
-  static_files: clientauthbuild/index.html
-  upload: clientauthbuild/index.html
-  login: required
-- url: /fr/static
-  secure: always
-  static_dir: clientauthbuild/static
-  login: required
-- url: /
-  secure: always
-  static_files: clienthomebuild/index.html
-  upload: clienthomebuild/index.html
-- url: /static
-  secure: always
-  static_dir: clienthomebuild/static
 
 env_variables:
+  # see config.yaml in root directory for basic field descriptions
   DEFAULT_SYSTEM_EMAIL: 'noreply@friendlyreservations.org'
-  DEFAULT_SYSTEM_NAME: 'Friendly Reservations'
+  DEFAULT_SYSTEM_NAME: 'Friendly Reservations Trial'
   ALLOW_NEW_PROPERTY: 'true'
+  # IMPORT_FILE_NAME: 'frdatav1.bin'
   ALLOW_DELETE_PROPERTY: 'true'
+
+  # main trial settings
   TRIAL_DURATION: '120h'
   SEND_MAIL_DISABLED: 'true'
-  IMPORT_FILE_NAME: ''
+
+  PLATFORM_AUTH_COOKIE_HASH: 'put cookie hash here'
+  PLATFORM_SECURE: 'true'
+  # PLATFORM_CORS_ORIGIN_URI: 'http://localhost:3000'
+  PLATFORM_SESSION_DURATION: '60m'
+  PLATFORM_DESTINATION_URI: 'https://friendlyreservations.org'
+
+  # the datastore/memcache namespace
+  PLATFORM_NAMESPACE: 'fr_app_trial'
+
+  # oauth keys
+  PLATFORM_CLIENT_ID: 'PUT TRIAL AUTH KEY HERE'
+  PLATFORM_CLIENT_SECRET: 'PUT TRIAL AUTH KEY HERE'
+
 
 
