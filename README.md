@@ -37,6 +37,7 @@ to install and run in appengine see [gae instructions](../master/appengine/doc.g
 - events and replays are cached in memcache
 - duplicate request suppression
 - secure authentication cookies
+- easy cors setup, for example for react client development (ex. npm start)
 - platform (ex gae, aws) abstracted behind interface calls in platform package
 
 ## implementation features
