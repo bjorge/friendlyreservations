@@ -2,7 +2,7 @@ runtime: go111
 
 handlers:
 - url: /(.*)
-  script: _go_app
+  script: auto
 
 env_variables:
   # see config.yaml in root directory for basic field descriptions

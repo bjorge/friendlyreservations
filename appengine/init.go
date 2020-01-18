@@ -33,8 +33,8 @@ var clientSecret string // the oauth client secret
 // package variables
 var googleOauthConfig *oauth2.Config
 
-// TODO: randomize it
-var oauthStateString = "pseudo-random"
+// BUG(bjorge): put into config 
+var oauthStateString = "7ac66c0f148de9519b8bd264312c4d64"
 
 func init() {
 	corsOriginURI = config.GetConfig("PLATFORM_CORS_ORIGIN_URI")

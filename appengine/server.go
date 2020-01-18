@@ -51,6 +51,14 @@ func main() {
 
 	// handle the daily cron job
 	http.Handle("/dailycron", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cronHeaders := r.Header["X-Appengine-Cron"]
+		if len(cronHeaders) == 0 {
+			log.LogDebugf("/dailycron called but not by appengine, so just return")
+			return
+		}
+
+		log.LogDebugf("X-Appengine-Cron values %v", cronHeaders)
+
 		ctx := appengine.NewContext(r)
 		ctx, err := appengine.Namespace(ctx, namespace)
 		if err != nil {
