@@ -99,7 +99,7 @@ func main() {
 		// (although any identifier ok for testing...)
 
 		// save auth credentials into cookies
-		frapi.FrapiCookies.SetCookies(w, email, false)
+		frapi.FrapiCookies.SetCookies(w, email)
 
 		// go back to home
 		redirectURL := "/"

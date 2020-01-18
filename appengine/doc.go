@@ -1,26 +1,23 @@
 /*
-Package main contains the code to run the server in GAE.
+The appengine directory contains the code to run the server in GAE
+	##### First create a GAE project and oauth settings
+		Generate oauth client id and client secret for the project
+		Setup oauth uris in the project, localhost for local testing and final appspot for deployment
 
 	##### Running locally in development mode ######
+		Edit app_dev.yaml, adding in oauth client id and secret
 		To run locally in dev mode, in this directory (appengine) run:
 			dev_appserver.py app_dev.yaml --log_level=debug --require_indexes --clear_datastore=yes
-		In the clientauth directory run:
+		In the client directory run:
 			npm start
 
 		home gql playground: http://localhost:8080/homeschema
 		member gql playground: http://localhost:8080/memberschema
 		admin gql playground: http://localhost:8080/adminschema
-	##### Running locally in static content mode ######
-		To run locally in static dev mode, do the following:
-			in the clientauth directory run: npm run build
-			in the clienthome directory run: npm run build
-			in the server/appengine directory run:
-			dev_appserver.py app_static.yaml --log_level=debug --require_indexes --clear_datastore=yes
 	##### Running in appengine ######
 		to run in gcloud, do the following in the cloud shell of appengine.google.com:
 			clone friendlyrervations into the cloud shell
-			in the clientauth directory run: npm install; npm run build
-			in the clienthome directory run: npm install; npm run build
+			in the client directory run: npm install; npm run build
 			(one time) gcloud app deploy index.yaml
 			(one time) gcloud app deploy cron.yaml
 			(one time) check the gae console and wait until the indexes are built

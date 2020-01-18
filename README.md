@@ -17,7 +17,13 @@ The project is a work in progress but is currenty in live use.
 
 ## install and run it
 
-[doc.go](../master/appengine/doc.go)
+- in the client directory:
+  - npm install; npm run build
+- in the root directory:
+  - go build && ./friendlyreservations
+
+- to install and run in appengine see
+  - [doc.go](../master/appengine/doc.go)
 
 ## architectural features
 
