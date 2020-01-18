@@ -17,9 +17,14 @@ The project is a work in progress but is currenty in live use.
 
 ## install and run it
 
-    cd client
-    npm install; npm run build
-    cd ..
+    (install)
+    mkdir $GOPATH/src/github.com/bjorge
+    cd $GOPATH/src/github.com/bjorge; git clone https://github.com/bjorge/friendlyreservations.git
+    cd friendlyreservations
+    go get -u ./...
+    cd client; npm install; npm run build; cd ..
+    
+    (run)
     go build && ./friendlyreservations
 
 to install and run in appengine see [gae instructions](../master/appengine/doc.go)
@@ -31,6 +36,9 @@ to install and run in appengine see [gae instructions](../master/appengine/doc.g
 - replay (rollup) of events on the fly in memory for GraphQL queries
 - events and replays are cached in memcache
 - duplicate request suppression
+- secure authentication cookies
+- gae oauth for google login
+- local testing without gae (session cookies but no oauth)
 
 ## implementation features
 
@@ -89,7 +97,7 @@ Each application feature, example reservations, users, restrictions, settings, e
 ### React code
 
 Generally each feature is a js file with the feature name.
-  - [example Settings.js](../master/clientauth/src/Settings.js)
+  - [example Settings.js](../master/client/src/Settings.js)
 
 ## authentication
 Currently gmail-based authentication is used.
