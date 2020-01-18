@@ -139,8 +139,7 @@ func main() {
 		if err != nil {
 			// Extract the user data
 			log.LogDebugf("email is: %+v", u.Email)
-			// BUG(bjorge): remove admin from the cookies!
-			frapi.FrapiCookies.SetCookies(w, u.Email, true)
+			frapi.FrapiCookies.SetCookies(w, u.Email)
 		} else {
 			log.LogErrorf("Unmarshal error: %+v", err)
 			http.Redirect(w, r, originURI+"/", http.StatusTemporaryRedirect)

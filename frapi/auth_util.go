@@ -8,7 +8,6 @@ import (
 // User represents a user of the application.
 type User struct {
 	Email string
-	Admin bool
 }
 
 var testUserEmail string
@@ -18,14 +17,14 @@ func GetUser(ctx context.Context) *User {
 	if testUserEmail != "" {
 		lowerCaseEmail := strings.ToLower(strings.TrimSpace(testUserEmail))
 		Logger.LogDebugf("Found unit test user: %+v", lowerCaseEmail)
-		return &User{Email: lowerCaseEmail, Admin: true}
+		return &User{Email: lowerCaseEmail}
 	}
 
-	email, admin, _ := FrapiCookies.GetContextValues(ctx)
+	email := FrapiCookies.GetContextValues(ctx)
 	if email != "" {
 		lowerCaseEmail := strings.ToLower(strings.TrimSpace(email))
 		Logger.LogDebugf("Found real user: %+v", lowerCaseEmail)
-		return &User{Email: lowerCaseEmail, Admin: admin}
+		return &User{Email: lowerCaseEmail}
 	}
 
 	return nil

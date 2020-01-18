@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/bjorge/friendlyreservations/config"
@@ -65,13 +64,12 @@ func NewCookies() *AuthCookies {
 }
 
 // SetCookies sets the cookies for authentication
-func (r *AuthCookies) SetCookies(w http.ResponseWriter, email string, isAdmin bool) {
+func (r *AuthCookies) SetCookies(w http.ResponseWriter, email string) {
 	log.LogDebugf("SetCookies")
 
 	expiration := time.Now().UTC().Add(r.Duration)
 
 	value := map[string]string{
-		"isAdmin":    strconv.FormatBool(isAdmin),
 		"email":      email,
 		"expiration": expiration.Format(time.RFC3339),
 	}
@@ -112,65 +110,77 @@ func (r *AuthCookies) SetCookies(w http.ResponseWriter, email string, isAdmin bo
 // ContextWithCookies puts the cookie values into the context
 func (r *AuthCookies) ContextWithCookies(ctx context.Context, request *http.Request) context.Context {
 	//LogDebugf("ContextWithCookies")
-	email, isAdmin, _ := r.GetCookiesValues(request)
+	email, _ := r.GetCookiesValues(request)
 	ctxWithValues := context.WithValue(ctx, contextKey("email"), email)
-	ctxWithValues = context.WithValue(ctxWithValues, contextKey("isAdmin"), isAdmin)
 
 	return ctxWithValues
 }
 
 // GetContextValues returns the values of the auth cookies
-func (r *AuthCookies) GetContextValues(ctx context.Context) (string, bool, string) {
+func (r *AuthCookies) GetContextValues(ctx context.Context) string {
 	email := ctx.Value(contextKey("email")).(string)
-	isAdmin := ctx.Value(contextKey("isAdmin")).(bool)
-	return email, isAdmin, ""
+	return email
+}
+
+func (r *AuthCookies) unmarshalCookieValues(request *http.Request, cookieName string, secure bool) (map[string]string, error) {
+	//LogDebugf("GetCookiesValue")
+	cookieValues := make(map[string]string)
+	cookie, err := request.Cookie(cookieName)
+	if err != nil {
+		log.LogDebugf("User not logged in, cookie %v missing (%v)", cookieName, err.Error())
+		return nil, err
+	}
+
+	var value []byte
+	if secure {
+		err := r.SecureCookie.Decode(cookieName, cookie.Value, &value)
+		if err != nil {
+			log.LogErrorf("Could not decode secure cookie, error: %v", err.Error())
+			//LogDebugf("read json http cookie: %+v\n", string(value))
+			return nil, err
+		}
+		err = json.Unmarshal(value, &cookieValues)
+		if err != nil {
+			log.LogErrorf("Could not unmarshal cookie %v, error: %v", cookieName, err.Error())
+		}
+
+	} else {
+		value, err := base64.StdEncoding.DecodeString(cookie.Value)
+		if err != nil {
+			log.LogErrorf("Unexpected base64 decode error, error: %v", err.Error())
+			return nil, err
+		}
+		//LogDebugf("read json js cookie: %+v\n", string(value))
+		err = json.Unmarshal(value, &cookieValues)
+		if err != nil {
+			log.LogErrorf("Could not unmarshal cookie %v, error: %v", cookieName, err.Error())
+		}
+	}
+	return cookieValues, nil
 }
 
 // GetCookiesValues returns the common value of the auth cookies
-func (r *AuthCookies) GetCookiesValues(request *http.Request) (string, bool, string) {
+func (r *AuthCookies) GetCookiesValues(request *http.Request) (string, string) {
 	//LogDebugf("GetCookiesValue")
-	httpCookieValues := make(map[string]string)
-	if cookie, err := request.Cookie(r.HTTPOnlyName); err != nil {
-		log.LogDebugf("Http cookie missing (user not logged in), error: %v", err.Error())
-		return "", false, ""
-	} else {
-		var value []byte
-		if err = r.SecureCookie.Decode(r.HTTPOnlyName, cookie.Value, &value); err == nil {
-			//LogDebugf("read json http cookie: %+v\n", string(value))
-			json.Unmarshal(value, &httpCookieValues)
-		}
+	httpCookieValues, err := r.unmarshalCookieValues(request, r.HTTPOnlyName, true)
+	if err != nil {
+		return "", ""
 	}
-	jsCookieValues := make(map[string]string)
-	if cookie, err := request.Cookie(r.JSName); err != nil {
-		log.LogDebugf("JS cookie missing (user not logged in), error: %v", err.Error())
-		return "", false, ""
-	} else {
-		log.LogDebugf("found a js cookie")
-		if value, err := base64.StdEncoding.DecodeString(cookie.Value); err != nil {
-			log.LogDebugf("Unexpected JS cookie base64 decode error, error: %v", err.Error())
-			return "", false, ""
-		} else {
-			//LogDebugf("read json js cookie: %+v\n", string(value))
-			json.Unmarshal(value, &jsCookieValues)
-		}
+
+	jsCookieValues, err := r.unmarshalCookieValues(request, r.JSName, false)
+	if err != nil {
+		return "", ""
 	}
 
 	// BUG(bjorge): check expiration value itself to see if cookie has expired
 
-	if httpCookieValues["isAdmin"] == jsCookieValues["isAdmin"] &&
-		httpCookieValues["email"] == jsCookieValues["email"] &&
+	if httpCookieValues["email"] == jsCookieValues["email"] &&
 		httpCookieValues["expiration"] == jsCookieValues["expiration"] {
-		//LogDebugf("Authorized, cookies match")
-		isAdmin, err := strconv.ParseBool(httpCookieValues["isAdmin"])
-		if err != nil {
-			log.LogErrorf("Unexpected cookie parsing error: %v", err.Error())
-			return "", false, ""
-		}
-		return httpCookieValues["email"], isAdmin, httpCookieValues["expiration"]
+		return httpCookieValues["email"], httpCookieValues["expiration"]
 	}
 
 	log.LogDebugf("Not authorized, cookies do not match")
-	return "", false, ""
+	return "", ""
 }
 
 // IsContextAuthenticated returns true if authenticated, false otherwise
@@ -186,7 +196,7 @@ func (r *AuthCookies) IsContextAuthenticated(ctx context.Context) bool {
 
 // IsAuthenticated returns true if authenticated, false otherwise
 func (r *AuthCookies) IsAuthenticated(writer http.ResponseWriter, request *http.Request) bool {
-	email, _, _ := r.GetCookiesValues(request)
+	email, _ := r.GetCookiesValues(request)
 	if email == "" {
 		log.LogDebugf("auth false, no cookie")
 		r.ClearCookies(writer)

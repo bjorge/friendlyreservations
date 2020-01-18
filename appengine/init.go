@@ -33,8 +33,7 @@ var clientSecret string // the oauth client secret
 // package variables
 var googleOauthConfig *oauth2.Config
 
-// BUG(bjorge): put into config 
-var oauthStateString = "7ac66c0f148de9519b8bd264312c4d64"
+var oauthStateString string
 
 func init() {
 	corsOriginURI = config.GetConfig("PLATFORM_CORS_ORIGIN_URI")
@@ -61,6 +60,7 @@ func init() {
 	secure = os.Getenv("PLATFORM_SECURE") == "true"
 	clientID = os.Getenv("PLATFORM_CLIENT_ID")
 	clientSecret = os.Getenv("PLATFORM_CLIENT_SECRET")
+	oauthStateString = os.Getenv("PLATFORM_OAUTH_STATE")
 	//hostedDomain = os.Getenv("PLATFORM_HOSTED_DOMAIN")
 
 	googleOauthConfig = &oauth2.Config{
