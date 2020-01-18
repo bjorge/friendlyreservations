@@ -37,10 +37,11 @@ to install and run in appengine see [gae instructions](../master/appengine/doc.g
 - events and replays are cached in memcache
 - duplicate request suppression
 - secure authentication cookies
-- gae oauth for google login
-- local testing without gae (session cookies but no oauth)
+- platform (ex gae, aws) abstracted behind interface calls in platform package
 
 ## implementation features
+
+- an appengine implentation is included, which uses google oauth for authentication
 
 ### member
 
