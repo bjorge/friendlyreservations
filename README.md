@@ -8,7 +8,7 @@ The project is a work in progress but is currenty in live use.
 
 ## try it out (requires gmail login)
 
-- [Live demo site](https://trialfriendlyreservations.appspot.com/)
+- [Live demo site](https://bjorgetrialfr.appspot.com/)
 - GraphQL playgrounds
   - [home](https://trialfriendlyreservations.appspot.com/homeschema) (ex. `{ properties { propertyId settings { propertyName } } }`)
   - [member](https://trialfriendlyreservations.appspot.com/memberschema)
