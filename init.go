@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/bjorge/friendlyreservations/config"
 	"github.com/bjorge/friendlyreservations/frapi"
+	"github.com/bjorge/friendlyreservations/local_platform"
 	"github.com/bjorge/friendlyreservations/logger"
-	"github.com/bjorge/friendlyreservations/persist"
 	graphql "github.com/graph-gophers/graphql-go"
 )
 
@@ -20,9 +20,9 @@ func init() {
 
 	corsOriginURI = config.GetConfig("PLATFORM_CORS_ORIGIN_URI")
 
-	frapi.PersistedEmailStore = persist.NewPersistedEmailStore(true)
-	frapi.PersistedVersionedEvents = persist.NewPersistedVersionedEvents(true)
-	frapi.PersistedPropertyList = persist.NewPersistedPropertyList(true)
+	frapi.PersistedEmailStore = localplatform.NewPersistedEmailStore()
+	frapi.PersistedVersionedEvents = localplatform.NewPersistedVersionedEvents()
+	frapi.PersistedPropertyList = localplatform.NewPersistedPropertyList()
 
 	adminSchema = graphql.MustParseSchema(frapi.AdminSchema, &frapi.Resolver{})
 	memberSchema = graphql.MustParseSchema(frapi.MemberSchema, &frapi.Resolver{})

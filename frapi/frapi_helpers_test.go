@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/bjorge/friendlyreservations/frdate"
+	"github.com/bjorge/friendlyreservations/local_platform"
 	"github.com/bjorge/friendlyreservations/models"
-	"github.com/bjorge/friendlyreservations/persist"
 	"github.com/bjorge/friendlyreservations/utilities"
 )
 
@@ -21,9 +21,9 @@ func initAndCreateTestProperty(testCtx context.Context, t *testing.T) (*Property
 	utilities.TrialDuration, _ = time.ParseDuration("0h")
 
 	frdate.TestTimeOffsetDays = nil
-	PersistedEmailStore = persist.NewPersistedEmailStore(true)
-	PersistedVersionedEvents = persist.NewPersistedVersionedEvents(true)
-	PersistedPropertyList = persist.NewPersistedPropertyList(true)
+	PersistedEmailStore = localplatform.NewPersistedEmailStore()
+	PersistedVersionedEvents = localplatform.NewPersistedVersionedEvents()
+	PersistedPropertyList = localplatform.NewPersistedPropertyList()
 
 	resolver := &Resolver{}
 

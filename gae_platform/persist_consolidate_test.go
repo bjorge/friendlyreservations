@@ -1,4 +1,4 @@
-package persist
+package gaeplatform
 
 import (
 	"context"
@@ -11,18 +11,52 @@ import (
 	"google.golang.org/appengine/aetest"
 )
 
-func TestConsolidateDatastore(t *testing.T) {
-	var ctx context.Context
-	var err error
-	var done func()
-	var persistedVersionedEvents platform.PersistedVersionedEvents
+type testEvent1 struct {
+	Value        int
+	VersionValue int
+}
 
-	ctx, done, err = aetest.NewContext()
+func (r *testEvent1) GetEventVersion() int {
+	return r.VersionValue
+}
+
+func (r *testEvent1) SetEventVersion(Version int) {
+	r.VersionValue = Version
+}
+
+type testEvent2 struct {
+	Value        string
+	VersionValue int
+}
+
+func (r *testEvent2) GetEventVersion() int {
+	return r.VersionValue
+}
+
+func (r *testEvent2) SetEventVersion(Version int) {
+	r.VersionValue = Version
+}
+
+type testEvent3 struct {
+	Value        bool
+	VersionValue int
+}
+
+func (r *testEvent3) GetEventVersion() int {
+	return r.VersionValue
+}
+
+func (r *testEvent3) SetEventVersion(Version int) {
+	r.VersionValue = Version
+}
+
+func TestConsolidate(t *testing.T) {
+	ctx, done, err := aetest.NewContext()
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer done()
-	persistedVersionedEvents = NewPersistedVersionedEvents(false)
+	persistedVersionedEvents := NewPersistedVersionedEvents()
 
 	defaultsTest(ctx, t, persistedVersionedEvents)
 	numRecordsTest(ctx, t, persistedVersionedEvents)
@@ -30,31 +64,12 @@ func TestConsolidateDatastore(t *testing.T) {
 	compressTest(ctx, t, persistedVersionedEvents)
 }
 
-func TestConsolidateUnitTest(t *testing.T) {
-	var ctx context.Context
-
-	var persistedVersionedEvents platform.PersistedVersionedEvents
-	persistedVersionedEvents = NewPersistedVersionedEvents(true)
-	defaultsTest(ctx, t, persistedVersionedEvents)
-	numRecordsTest(ctx, t, persistedVersionedEvents)
-	maxSizeTest(ctx, t, persistedVersionedEvents)
-
-}
-
 func defaultsTest(ctx context.Context, t *testing.T, persistedVersionedEvents platform.PersistedVersionedEvents) {
 
 	_, events, numRecords := consolidateTest(ctx, t, persistedVersionedEvents)
-
-	if _, ok := persistedVersionedEvents.(*unitTestImpl); ok {
-		// the unit test just stores events into an array
-		if numRecords != len(events) {
-			t.Fatalf("Unit test expected %+v records but instead got %+v", len(events), numRecords)
-		}
-	} else if _, ok := persistedVersionedEvents.(*dataStoreImpl); ok {
-		// the  real database code will consolidate events into less records for quicker access
-		if numRecords != 5 {
-			t.Fatalf("Persist test expected %+v records but instead got %+v", 5, numRecords)
-		}
+	t.Logf("defaultsTest events: %v records: %v", events, numRecords)
+	if numRecords != 5 {
+		t.Fatalf("Persist test expected %+v records but instead got %+v", 5, numRecords)
 	}
 }
 
@@ -64,18 +79,12 @@ func numRecordsTest(ctx context.Context, t *testing.T, persistedVersionedEvents 
 	consolidateNumRecords = 20
 
 	_, events, numRecords := consolidateTest(ctx, t, persistedVersionedEvents)
-
-	if _, ok := persistedVersionedEvents.(*unitTestImpl); ok {
-		// the unit test just stores events into an array
-		if numRecords != len(events) {
-			t.Fatalf("Unit test expected %+v records but instead got %+v", len(events), numRecords)
-		}
-	} else if _, ok := persistedVersionedEvents.(*dataStoreImpl); ok {
-		// the  real database code will consolidate events into less records for quicker access
-		if numRecords != 6 {
-			t.Fatalf("Persist test expected %+v records but instead got %+v", 6, numRecords)
-		}
+	t.Logf("numRecordsTest events: %v records: %v", events, numRecords)
+	// the  real database code will consolidate events into less records for quicker access
+	if numRecords != 6 {
+		t.Fatalf("Persist test expected %+v records but instead got %+v", 6, numRecords)
 	}
+
 }
 
 func maxSizeTest(ctx context.Context, t *testing.T, persistedVersionedEvents platform.PersistedVersionedEvents) {
@@ -85,18 +94,12 @@ func maxSizeTest(ctx context.Context, t *testing.T, persistedVersionedEvents pla
 	consolidateCompress = false
 
 	_, events, numRecords := consolidateTest(ctx, t, persistedVersionedEvents)
-
-	if _, ok := persistedVersionedEvents.(*unitTestImpl); ok {
-		// the unit test just stores events into an array
-		if numRecords != len(events) {
-			t.Fatalf("Unit test expected %+v records but instead got %+v", len(events), numRecords)
-		}
-	} else if _, ok := persistedVersionedEvents.(*dataStoreImpl); ok {
-		// the  real database code will consolidate events into less records for quicker access
-		if numRecords != 11 {
-			t.Fatalf("Persist test expected %+v records but instead got %+v", 11, numRecords)
-		}
+	// the  real database code will consolidate events into less records for quicker access
+	t.Logf("maxSizeTest events: %v records: %v", events, numRecords)
+	if numRecords != 11 {
+		t.Fatalf("Persist test expected %+v records but instead got %+v", 11, numRecords)
 	}
+
 }
 
 func compressTest(ctx context.Context, t *testing.T, persistedVersionedEvents platform.PersistedVersionedEvents) {
@@ -106,18 +109,12 @@ func compressTest(ctx context.Context, t *testing.T, persistedVersionedEvents pl
 	consolidateCompress = true
 
 	_, events, numRecords := consolidateTest(ctx, t, persistedVersionedEvents)
-
-	if _, ok := persistedVersionedEvents.(*unitTestImpl); ok {
-		// the unit test just stores events into an array
-		if numRecords != len(events) {
-			t.Fatalf("Unit test expected %+v records but instead got %+v", len(events), numRecords)
-		}
-	} else if _, ok := persistedVersionedEvents.(*dataStoreImpl); ok {
-		// the  real database code will consolidate events into less records for quicker access
-		if numRecords != 2 {
-			t.Fatalf("Persist test expected %+v records but instead got %+v", 2, numRecords)
-		}
+	// the  real database code will consolidate events into less records for quicker access
+	t.Logf("compressTest events: %v records: %v", events, numRecords)
+	if numRecords != 2 {
+		t.Fatalf("Persist test expected %+v records but instead got %+v", 2, numRecords)
 	}
+
 }
 
 func consolidateTest(ctx context.Context, t *testing.T, persistedVersionedEvents platform.PersistedVersionedEvents) (string, []platform.VersionedEvent, int) {

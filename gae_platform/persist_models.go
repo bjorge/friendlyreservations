@@ -1,4 +1,4 @@
-package persist
+package gaeplatform
 
 // todo: use these
 // type PropertyTransactionKey int
@@ -33,6 +33,6 @@ type PersistedPropertyEvents struct {
 
 // Event is the []byte gob-encoded array of events
 type Event struct {
-	Id    int
+	ID    int
 	Value interface{}
 }

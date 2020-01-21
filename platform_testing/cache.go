@@ -1,39 +1,14 @@
-package persist
+package platformtesting
 
 import (
 	"context"
 	"testing"
 
 	"github.com/bjorge/friendlyreservations/platform"
-	"google.golang.org/appengine/aetest"
 )
 
-func TestCacheDatastore(t *testing.T) {
-	var ctx context.Context
-	var err error
-	var done func()
-	var persistedVersionedEvents platform.PersistedVersionedEvents
-
-	ctx, done, err = aetest.NewContext()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer done()
-	persistedVersionedEvents = NewPersistedVersionedEvents(false)
-
-	cacheTest(ctx, t, persistedVersionedEvents)
-}
-
-func TestCacheUnitTest(t *testing.T) {
-	var ctx context.Context
-
-	var persistedVersionedEvents platform.PersistedVersionedEvents
-	persistedVersionedEvents = NewPersistedVersionedEvents(true)
-	cacheTest(ctx, t, persistedVersionedEvents)
-
-}
-
-func cacheTest(ctx context.Context, t *testing.T, persistedVersionedEvents platform.PersistedVersionedEvents) {
+// TestCache is called by a platform implementor to test the platform cache
+func TestCache(ctx context.Context, t *testing.T, persistedVersionedEvents platform.PersistedVersionedEvents) {
 
 	key := "theKey"
 	value := "theValue"
