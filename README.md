@@ -8,11 +8,11 @@ The project is a work in progress but is currenty in live use.
 
 ## try it out (requires gmail login)
 
-- [Live demo site](https://bjorgetrialfr.appspot.com/)
+- [Live demo site](https://trial.friendlyreservations.org/)
 - Demo site GraphQL playgrounds (first login to demo site)
-  - [home](https://bjorgetrialfr.appspot.com/homeschema) (ex. `{ properties { propertyId settings { propertyName } } }`)
-  - [member](https://bjorgetrialfr.appspot.com/memberschema)
-  - [admin](https://bjorgetrialfr.appspot.com/adminschema)
+  - [home](https://trial.friendlyreservations.org/homeschema) (ex. `{ properties { propertyId settings { propertyName } } }`)
+  - [member](https://trial.friendlyreservations.org/memberschema)
+  - [admin](https://trial.friendlyreservations.org/adminschema)
 - [Recorded demo](https://youtu.be/5C7mCkCO6qk)
 
 ## install and run it
