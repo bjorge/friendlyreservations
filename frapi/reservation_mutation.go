@@ -231,10 +231,15 @@ func (r *Resolver) CreateReservation(ctx context.Context, args *struct {
 
 	propertyResolver, err = commitChanges(ctx, args.PropertyID, propertyResolver.EventVersion(), args.Input, newNotificationInput)
 
-	if err == nil {
+	if err != nil {
+		Logger.LogErrorf("CreateReservation: error commiting: %+v", err)
+	} else {
 		// send the email notification
 		notifications, _ := propertyResolver.Notifications(&notificationArgs{notificationID: &newNotificationInput.NotificationId})
-		sendEmail(ctx, propertyResolver, notifications[0])
+		err := sendEmail(ctx, propertyResolver, notifications[0])
+		if err != nil {
+			Logger.LogErrorf("CreateReservation: error sending email: %+v", err)
+		}
 	}
 
 	return propertyResolver, err

@@ -11,11 +11,12 @@ type sendMailImpl struct{}
 
 // NewEmailSender is the factory method to create an email sender
 func NewEmailSender() platform.SendMail {
-
+	logging.LogDebugf("Email sender using gae implementation")
 	return &sendMailImpl{}
 }
 
 func (r *sendMailImpl) Send(ctx context.Context, emailMessage *platform.EmailMessage) error {
+	logging.LogDebugf("Send: sending email on gae platform")
 	msg := &mail.Message{
 		Sender:   emailMessage.Sender,
 		ReplyTo:  emailMessage.ReplyTo,
@@ -42,7 +43,7 @@ func (r *sendMailImpl) Send(ctx context.Context, emailMessage *platform.EmailMes
 
 	err := mail.Send(ctx, msg)
 	if err == nil {
-		logging.LogErrorf("Success sending email to %+v", msg.Subject)
+		logging.LogErrorf("Success sending email: %+v", msg.Subject)
 	} else {
 		logging.LogErrorf("Error sending mail: %+v", err)
 	}
