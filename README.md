@@ -100,8 +100,13 @@ Each application feature, example reservations, users, restrictions, settings, e
 Generally each feature is a js file with the feature name.
   - [example Settings.js](../master/client/src/Settings.js)
 
+## session
+
+The core layer manages secure session cookies which follows [this pattern](https://medium.com/lightrail/getting-token-authentication-right-in-a-stateless-single-page-application-57d0c6474e3).
+
 ## authentication
-Currently gmail-based authentication is used.
+
+Authentication is managed by the implementation layer. In the case of gae, authentication is handled using oauth and gmail accounts.
 
 ## other
 
