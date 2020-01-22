@@ -10,7 +10,7 @@ import (
 	"github.com/bjorge/friendlyreservations/utilities"
 )
 
-// DailyCron is called by the service (ex. appengine) once per day
+// DailyCron is called by the service once per day
 func DailyCron(ctx context.Context) error {
 
 	Logger.LogInfof("DailyCron start")

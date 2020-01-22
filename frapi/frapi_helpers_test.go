@@ -24,6 +24,7 @@ func initAndCreateTestProperty(testCtx context.Context, t *testing.T) (*Property
 	PersistedEmailStore = localplatform.NewPersistedEmailStore()
 	PersistedVersionedEvents = localplatform.NewPersistedVersionedEvents()
 	PersistedPropertyList = localplatform.NewPersistedPropertyList()
+	EmailSender = localplatform.NewEmailSender()
 
 	resolver := &Resolver{}
 

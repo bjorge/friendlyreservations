@@ -5,10 +5,9 @@ import (
 
 	"github.com/bjorge/friendlyreservations/frdate"
 	"github.com/bjorge/friendlyreservations/models"
+	"github.com/bjorge/friendlyreservations/platform"
 	"github.com/bjorge/friendlyreservations/templates"
 	"github.com/bjorge/friendlyreservations/utilities"
-
-	"google.golang.org/appengine/mail"
 )
 
 type notificationTargetType string
@@ -37,7 +36,7 @@ func sendEmail(ctx context.Context, property *PropertyResolver, notification *No
 		return err
 	}
 
-	msg := &mail.Message{
+	msg := &platform.EmailMessage{
 		Sender:  *notification.authorEmailFormat(),
 		To:      notification.toEmailFormat(),
 		Cc:      notification.ccEmailFormat(),
@@ -45,12 +44,7 @@ func sendEmail(ctx context.Context, property *PropertyResolver, notification *No
 		Body:    body,
 	}
 
-	err = mail.Send(ctx, msg)
-	if err != nil {
-		Logger.LogErrorf("Error sending mail: %+v", err)
-	}
-
-	return err
+	return EmailSender.Send(ctx, msg)
 }
 
 func createNotificationRecord(notificationTarget notificationTargetType, property *PropertyResolver, templateName templates.TemplateName,

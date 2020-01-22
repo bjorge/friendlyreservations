@@ -29,8 +29,6 @@ type PersistedVersionedEvents interface {
 	CacheDelete(ctx context.Context, propertyID string, key string) error
 }
 
-// BUG(bjorge): return a struct or just the email that is not a persist package object
-
 // PersistedEmailStore is the interface for accessing the store of email addresses
 type PersistedEmailStore interface {
 	CreateEmail(ctx context.Context, propertyID string, email string) (string, error)
@@ -43,6 +41,36 @@ type PersistedEmailStore interface {
 
 	EmailExists(ctx context.Context, propertyID string, email string) (*bool, error)
 	DeleteEmails(ctx context.Context, propertyID string) error
+}
+
+// An EmailAttachment represents an email attachment.
+type EmailAttachment struct {
+	// Name must be set to a valid file name.
+	Name      string
+	Data      []byte
+	ContentID string
+}
+
+// An EmailMessage represents an email message.
+// Addresses may be of any form permitted by RFC 822.
+type EmailMessage struct {
+	Sender  string
+	ReplyTo string // may be empty
+
+	To, Cc, Bcc []string
+
+	Subject string
+
+	Body     string
+	HTMLBody string
+
+	Attachments []EmailAttachment
+}
+
+// SendMail is the interface for sending out emails
+type SendMail interface {
+	// Send sends an email message.
+	Send(ctx context.Context, msg *EmailMessage) error
 }
 
 // Logger is the interface for logging

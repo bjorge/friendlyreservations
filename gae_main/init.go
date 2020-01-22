@@ -6,8 +6,8 @@ import (
 
 	"github.com/bjorge/friendlyreservations/config"
 	"github.com/bjorge/friendlyreservations/frapi"
+	"github.com/bjorge/friendlyreservations/gae_platform"
 	"github.com/bjorge/friendlyreservations/logger"
-	"github.com/bjorge/friendlyreservations/persist"
 	graphql "github.com/graph-gophers/graphql-go"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -38,9 +38,10 @@ var oauthStateString string
 func init() {
 	corsOriginURI = config.GetConfig("PLATFORM_CORS_ORIGIN_URI")
 
-	frapi.PersistedEmailStore = persist.NewPersistedEmailStore(false)
-	frapi.PersistedVersionedEvents = persist.NewPersistedVersionedEvents(false)
-	frapi.PersistedPropertyList = persist.NewPersistedPropertyList(false)
+	frapi.PersistedEmailStore = gaeplatform.NewPersistedEmailStore()
+	frapi.PersistedVersionedEvents = gaeplatform.NewPersistedVersionedEvents()
+	frapi.PersistedPropertyList = gaeplatform.NewPersistedPropertyList()
+	frapi.EmailSender = gaeplatform.NewEmailSender()
 
 	adminSchema = graphql.MustParseSchema(frapi.AdminSchema, &frapi.Resolver{})
 	memberSchema = graphql.MustParseSchema(frapi.MemberSchema, &frapi.Resolver{})

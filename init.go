@@ -23,6 +23,7 @@ func init() {
 	frapi.PersistedEmailStore = localplatform.NewPersistedEmailStore()
 	frapi.PersistedVersionedEvents = localplatform.NewPersistedVersionedEvents()
 	frapi.PersistedPropertyList = localplatform.NewPersistedPropertyList()
+	frapi.EmailSender = localplatform.NewEmailSender()
 
 	adminSchema = graphql.MustParseSchema(frapi.AdminSchema, &frapi.Resolver{})
 	memberSchema = graphql.MustParseSchema(frapi.MemberSchema, &frapi.Resolver{})

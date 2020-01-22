@@ -22,6 +22,9 @@ var PersistedVersionedEvents platform.PersistedVersionedEvents
 // PersistedPropertyList is the list of persisted properties
 var PersistedPropertyList platform.PersistedPropertyList
 
+// EmailSender is used to send emails
+var EmailSender platform.SendMail
+
 // FrapiCookies contains helper functions for setting and getting cookies
 var FrapiCookies *cookies.AuthCookies
 

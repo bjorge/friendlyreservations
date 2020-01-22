@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/bjorge/friendlyreservations/utilities"
-	"google.golang.org/appengine/mail"
 
 	"github.com/bjorge/friendlyreservations/platform"
 )
@@ -39,15 +38,12 @@ func (r *Resolver) Export(ctx context.Context, args *struct {
 		return nil, err
 	}
 
-	err = mail.Send(ctx, msg)
-	if err != nil {
-		Logger.LogErrorf("Error sending mail: %+v", err)
-	}
+	err = EmailSender.Send(ctx, msg)
 
 	return property, nil
 }
 
-func (r *Resolver) exportInternal(ctx context.Context, property *PropertyResolver, me *UserResolver) (*mail.Message, error) {
+func (r *Resolver) exportInternal(ctx context.Context, property *PropertyResolver, me *UserResolver) (*platform.EmailMessage, error) {
 
 	// get the events
 	export := &PropertyExport{}
@@ -69,17 +65,17 @@ func (r *Resolver) exportInternal(ctx context.Context, property *PropertyResolve
 	sender := fmt.Sprintf("%s <%s>", utilities.SystemName, utilities.SystemEmail)
 	to := []string{fmt.Sprintf("%s <%s>", me.Nickname(), me.Email())}
 
-	attachment := mail.Attachment{}
+	attachment := platform.EmailAttachment{}
 	//attachment.ContentID = utilities.NewGuid()
 	attachment.Data = stream.Bytes()
 	attachment.Name = "frdatav1.bin"
 
-	msg := &mail.Message{
+	msg := &platform.EmailMessage{
 		Sender:      sender,
 		To:          to,
 		Subject:     "Property export",
 		Body:        "Attached is the export",
-		Attachments: []mail.Attachment{attachment},
+		Attachments: []platform.EmailAttachment{attachment},
 	}
 
 	return msg, err
