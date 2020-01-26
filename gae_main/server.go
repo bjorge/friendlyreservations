@@ -34,6 +34,15 @@ type googleUser struct {
 }
 
 func main() {
+	if redirectURL != "" {
+		redirectHTML := mustGetRedirectHTML("redirect.html", redirectURL, redirectLabel)
+		http.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Write(redirectHTML)
+		}))
+		startServer()
+		return
+	}
+
 	if utilities.SystemEmail == "" {
 		panic("DEFAULT_SYSTEM_EMAIL environment variable must be set, example set to noreply@mydomain.com in app.yaml")
 	}
@@ -212,8 +221,12 @@ func main() {
 	spa := SpaHandler{StaticPath: "spa", IndexPath: "index.html"}
 	http.Handle("/", spa)
 
-	appengine.Main() // Starts the server to receive requests
+	startServer()
 
+}
+
+func startServer() {
+	appengine.Main() // Starts the server to receive requests
 }
 
 func gqlMiddleware(next http.Handler) http.Handler {
@@ -230,6 +243,25 @@ func gqlMiddleware(next http.Handler) http.Handler {
 	}
 
 	return http.HandlerFunc(fn)
+}
+
+func mustGetRedirectHTML(fileName string, url string, label string) []byte {
+	t := template.New(fileName)
+	t, err := t.ParseFiles(fileName)
+	if err != nil {
+		panic(err)
+	}
+
+	// refer to the gql handler above
+	var buffer bytes.Buffer
+	err = t.Execute(&buffer, struct {
+		Path  string
+		Label string
+	}{Path: url, Label: label})
+	if err != nil {
+		panic(err)
+	}
+	return buffer.Bytes()
 }
 
 func mustGetSchemaHTML(fileName string, gqlPath string) []byte {

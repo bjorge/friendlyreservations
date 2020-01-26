@@ -35,8 +35,14 @@ var googleOauthConfig *oauth2.Config
 
 var oauthStateString string
 
+var redirectURL string
+var redirectLabel string
+
 func init() {
 	corsOriginURI = config.GetConfig("PLATFORM_CORS_ORIGIN_URI")
+
+	redirectURL = config.GetConfig("REDIRECT_URL")
+	redirectLabel = config.GetConfig("REDIRECT_LABEL")
 
 	frapi.PersistedEmailStore = gaeplatform.NewPersistedEmailStore()
 	frapi.PersistedVersionedEvents = gaeplatform.NewPersistedVersionedEvents()
