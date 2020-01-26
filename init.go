@@ -16,9 +16,15 @@ var adminSchema *graphql.Schema
 var memberSchema *graphql.Schema
 var homeSchema *graphql.Schema
 
+var redirectURL string
+var redirectLabel string
+
 func init() {
 
 	corsOriginURI = config.GetConfig("PLATFORM_CORS_ORIGIN_URI")
+
+	redirectURL = config.GetConfig("REDIRECT_URL")
+	redirectLabel = config.GetConfig("REDIRECT_LABEL")
 
 	frapi.PersistedEmailStore = localplatform.NewPersistedEmailStore()
 	frapi.PersistedVersionedEvents = localplatform.NewPersistedVersionedEvents()

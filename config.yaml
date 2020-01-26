@@ -5,7 +5,7 @@ DEFAULT_SYSTEM_NAME: 'Friendly Reservations'
 # allow a user to create a new property
 ALLOW_NEW_PROPERTY: 'true'
 # an exported property file to be imported for troubleshooting and testing
-#IMPORT_FILE_NAME: 'frdatav1.bin'
+# IMPORT_FILE_NAME: 'frdatav1.bin'
 # allow a property admin to delete the property 
 ALLOW_DELETE_PROPERTY: 'true'
 # set auth cookie hash to at least 32 byte value (better 64)
@@ -18,4 +18,7 @@ PLATFORM_SECURE: 'false'
 PLATFORM_SESSION_DURATION: '60m'
 # the host uri (include scheme and optionally port)
 PLATFORM_DESTINATION_URI: 'http://localhost:8080'
+# uncomment the following two lines to redirect the user to a new site
+# REDIRECT_URL: 'https://new web site url here'
+# REDIRECT_LABEL: 'new web site label here'
 
