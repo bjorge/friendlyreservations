@@ -17,7 +17,7 @@ export default class About extends Component {
                     <CardBody>
                         <CardTitle>About!</CardTitle>
                         <CardText>For more information visit <a href="https://github.com/bjorge/friendlyreservations/blob/master/README.md">friendlyreservations</a>.</CardText>
-                        <CardText>version master branch</CardText>
+                        <CardText>1.6</CardText>
                    </CardBody>
                 </Card>
             </Container>
