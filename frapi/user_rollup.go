@@ -72,7 +72,30 @@ func (r *PropertyResolver) rollupUsers() {
 							&userRollup, userRollupType)
 					}
 				}
+			case *models.UpdateSystemUserInput:
+				rollups := r.getRollups(&rollupArgs{id: &userEvent.UserID}, userRollupType)
+				if len(rollups) > 0 {
+					rollup := rollups[0]
+					if user, ok := rollup.(*UserRollup); ok {
+						// make a copy
+						userRollup := *user
 
+						userRollup.UserID = userEvent.UserID
+
+						userRollup.IsSystem = true
+						userRollup.IsAdmin = false
+						userRollup.IsMember = false
+						userRollup.State = models.ACCEPTED
+						userRollup.Nickname = userEvent.Nickname
+
+						userRollup.EmailID = userEvent.EmailID
+
+						userRollup.EventVersion = userEvent.EventVersion
+
+						r.addRollup(userEvent.UserID,
+							&userRollup, userRollupType)
+					}
+				}
 			case *models.AcceptInvitationInput:
 				// get the user
 				rollups := r.getRollups(&rollupArgs{id: &userEvent.AuthorUserId}, userRollupType)

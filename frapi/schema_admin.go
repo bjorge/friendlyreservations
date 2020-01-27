@@ -27,6 +27,8 @@ var AdminSchema = `
 		createUser(propertyId: String!, input: NewUserInput!) : Property
 		# update user
 		updateUser(propertyId: String!, userId: String!, input: UpdateUserInput!) : Property
+		# update system user
+		updateSystemUser(propertyId: String!, userId: String!, input: UpdateSystemUserInput!) : Property
 		# update user balance
 		updateBalance(propertyId: String!, input: UpdateBalanceInput!) : Property
 		# mark notification read
@@ -69,4 +71,4 @@ var AdminSchema = `
 	}
 
 
-` + models.NewRestrictionInputGQL + models.BlackoutRestrictionInputGQL + models.MembershipRestrictionInputGQL + models.UpdateSettingsInputGQL + models.AcceptInvitationInputGQL + models.NewReservationInputGQL + settingsGQL + reservationGQL + userGQL + ledgerQueryGQL + membershipStatusConstraintsGQL + restrictionGQL + notificationGQL + contentGQL + reservationConstraintsGQL + settingsConstraintsGQL + updateUserConstraintsGQL + cancelReservationConstraintsGQL + models.LedgerMutationGQL + models.NewUserInputGQL + models.UpdateUserInputGQL + updateBalanceConstraintsGQL + models.NewContentInputGQL + models.UpdateMembershipStatusInputGQL
+` + models.NewRestrictionInputGQL + models.BlackoutRestrictionInputGQL + models.MembershipRestrictionInputGQL + models.UpdateSettingsInputGQL + models.AcceptInvitationInputGQL + models.NewReservationInputGQL + settingsGQL + reservationGQL + userGQL + ledgerQueryGQL + membershipStatusConstraintsGQL + restrictionGQL + notificationGQL + contentGQL + reservationConstraintsGQL + settingsConstraintsGQL + updateUserConstraintsGQL + cancelReservationConstraintsGQL + models.LedgerMutationGQL + models.NewUserInputGQL + models.UpdateUserInputGQL + updateBalanceConstraintsGQL + models.NewContentInputGQL + models.UpdateMembershipStatusInputGQL + models.UpdateSystemUserInputGQL

@@ -16,6 +16,7 @@ func init() {
 	gob.Register(&UpdateSettingsInput{})
 	gob.Register(&NewUserInput{})
 	gob.Register(&UpdateUserInput{})
+	gob.Register(&UpdateSystemUserInput{})
 	gob.Register(&AcceptInvitationInput{})
 	gob.Register(&NewRestrictionInput{})
 	gob.Register(&NewNotificationInput{})

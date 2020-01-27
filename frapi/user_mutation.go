@@ -253,3 +253,97 @@ func (r *Resolver) AcceptInvitation(ctx context.Context, args *struct {
 	// persist the event
 	return commitChanges(ctx, args.PropertyID, propertyResolver.EventVersion(), args.Input)
 }
+
+// UpdateSystemUser is called to update a system user record
+func (r *Resolver) UpdateSystemUser(ctx context.Context, args *struct {
+	PropertyID string
+	UserID     string
+	Input      *models.UpdateSystemUserInput
+}) (*PropertyResolver, error) {
+	Logger.LogDebugf("Update System User")
+
+	propertyResolver, me, err := currentProperty(ctx, args.PropertyID)
+	if err != nil {
+		return nil, err
+	}
+
+	// check the input values and for duplicates
+	if duplicate, err := isDuplicate(ctx, args.Input, propertyResolver); duplicate || err != nil {
+		if err == nil {
+			return propertyResolver, nil
+		}
+		return nil, err
+	}
+
+	// only an admin can update a user
+	if !me.IsAdmin() {
+		return nil, errors.New("only an admin can update a user")
+	}
+
+	users := propertyResolver.Users(&usersArgs{UserID: &args.UserID})
+	if len(users) == 0 {
+		return nil, errors.New("target user does not exist")
+	}
+
+	// trim the input
+	args.Input.Email = strings.ToLower(strings.TrimSpace(args.Input.Email))
+	args.Input.Nickname = strings.TrimSpace(args.Input.Nickname)
+
+	constraints, err := propertyResolver.UpdateUserConstraints(ctx, &UpdateUserConstraintsArgs{UserID: &args.UserID})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(args.Input.Nickname) < int(constraints.NicknameMin()) {
+		return nil, errors.New("nickname too short: " + args.Input.Nickname)
+	}
+
+	if len(args.Input.Nickname) > int(constraints.NicknameMax()) {
+		return nil, errors.New("nickname too long: " + args.Input.Nickname)
+	}
+
+	if len(args.Input.Email) < int(constraints.EmailMin()) {
+		return nil, errors.New("email too short: " + args.Input.Email)
+	}
+
+	if len(args.Input.Email) > int(constraints.EmailMax()) {
+		return nil, errors.New("email too long: " + args.Input.Email)
+	}
+
+	user := users[0]
+
+	// update the request with more information
+	args.Input.UserID = args.UserID
+	args.Input.UpdateDateTime = frdate.CreateDateTimeUTC()
+	args.Input.AuthorUserID = me.UserID()
+
+	if user.Email() == args.Input.Email {
+		args.Input.EmailID = user.emailID()
+		// do not store the actual email, only the email id
+		args.Input.Email = ""
+	} else {
+		exists, err := PersistedEmailStore.EmailExists(ctx, args.PropertyID, args.Input.Email)
+		if err != nil {
+			return nil, err
+		}
+
+		if *exists {
+			emailID, err := PersistedEmailStore.GetEmail(ctx, args.PropertyID, args.Input.Email)
+			if err != nil {
+				return nil, err
+			}
+			args.Input.EmailID = emailID
+			args.Input.Email = ""
+		} else {
+			emailID, err := PersistedEmailStore.CreateEmail(ctx, args.PropertyID, args.Input.Email)
+			if err != nil {
+				return nil, err
+			}
+			args.Input.EmailID = emailID
+			args.Input.Email = ""
+		}
+	}
+
+	// persist the event
+	return commitChanges(ctx, args.PropertyID, propertyResolver.EventVersion(), args.Input)
+}
