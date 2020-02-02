@@ -43,6 +43,8 @@ var AdminSchema = `
 		updateMembershipStatus(propertyId: String!, input: UpdateMembershipInput!) : Property
 		export(propertyId: String!) : Property
 		deleteProperty(propertyId: String!) : Boolean!
+		exportCSV(propertyId: String!) : Property
+
 
 	}
 
