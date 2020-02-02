@@ -7,6 +7,7 @@ import { Query } from "react-apollo";
 
 import Spinner from './Spinner';
 import Export from './Export';
+import ExportCSV from './ExportCSV';
 import DeleteProperty from './DeleteProperty';
 import ErrorModal from './ErrorModal';
 
@@ -39,11 +40,13 @@ class AdminAdvanced extends Component {
         super(props);
         this.turnOffModals = this.turnOffModals.bind(this);
         this.displayExportModal = this.displayExportModal.bind(this);
+        this.displayExportCSVModal = this.displayExportCSVModal.bind(this);
         this.displayDeleteModal = this.displayDeleteModal.bind(this);
 
         this.state = {
             cachedProperty: null,
             showExportModal: false,
+            showExportCSVModal: false,
             showDeleteModal: false,
         };
     }
@@ -85,7 +88,10 @@ class AdminAdvanced extends Component {
                             <div>
                                 {error && <ErrorModal error={error} />}
                                 <Export showModal={this.state.showExportModal} exitModal={this.turnOffModals} />
-                                <Button color="link" style={buttonStyle} onClick={() => this.displayExportModal()}>Export</Button>
+                                <Button color="link" style={buttonStyle} onClick={() => this.displayExportModal()}>Export Backup</Button>
+                                <br />
+                                <ExportCSV showModal={this.state.showExportCSVModal} exitModal={this.turnOffModals} />
+                                <Button color="link" style={buttonStyle} onClick={() => this.displayExportCSVModal()}>Export CSV</Button>
                                 <br />
                                 <DeleteProperty showModal={this.state.showDeleteModal} exitModal={this.turnOffModals} />
                                 {property.updateSettingsConstraints.allowPropertyDelete && <Button color="link" style={buttonStyle} onClick={() => this.displayDeleteModal()}>Delete Property</Button>}
@@ -99,12 +105,19 @@ class AdminAdvanced extends Component {
 
     turnOffModals = () => {
         this.setState({ showExportModal: false });
+        this.setState({ showExportCSVModal: false });
         this.setState({ showDeleteModal: false });
     }
 
     displayExportModal() {
         this.setState({
             showExportModal: true
+        });
+    }
+
+    displayExportCSVModal() {
+        this.setState({
+            showExportCSVModal: true
         });
     }
 

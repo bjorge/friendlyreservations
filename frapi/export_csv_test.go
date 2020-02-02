@@ -32,5 +32,5 @@ func TestExportCSV(t *testing.T) {
 	t.Logf("ledgers csv contents:\n%+v", string(msg.Attachments[0].Data))
 	t.Logf("reservations csv contents:\n%+v", string(msg.Attachments[1].Data))
 
-	t.Fatal("testing")
+	// t.Fatal("testing")
 }
