@@ -87,10 +87,10 @@ func (r *Resolver) exportLedgers(ctx context.Context, property *PropertyResolver
 			if member.IsSystem() {
 				continue
 			}
-			record := []string{}
 			date := db.MustNewDateTime(item.EventDateTime()).ToDate()
 
 			if year != 0 && year != date.Year() {
+				record := []string{}
 				record = append(record, member.Nickname())
 				record = append(record, strconv.Itoa(year))
 				record = append(record, strconv.Itoa(year)+"-12-31")
@@ -102,6 +102,7 @@ func (r *Resolver) exportLedgers(ctx context.Context, property *PropertyResolver
 			year = date.Year()
 			balance = item.balanceInternal().Decimal()
 
+			record := []string{}
 			record = append(record, member.Nickname())
 			record = append(record, strconv.Itoa(date.Year()))
 			record = append(record, date.ToString())
@@ -154,56 +155,83 @@ func (r *Resolver) exportReservations(ctx context.Context, property *PropertyRes
 
 	var records [][]string
 
-	records = append(records, []string{"member", "checkin year", "checkin date", "checkout date", "days", "rate type", "rate", "total", "author", "purchase date", "split", "id"})
+	records = append(records, []string{"member", "checkin year", "checkin date", "checkout date", "rate type", "daily rate", "days", "total amount", "author", "purchase year", "purchase date", "reservation id"})
 	for _, reservationRecord := range reservations {
 
-		checkoutDate := db.MustNewDate(reservationRecord.EndDate())
-		checkinDate := db.MustNewDate(reservationRecord.StartDate())
-
-		var split string
-		if checkinDate.Year() != checkoutDate.Year() {
-			split = "SPLIT"
-		} else {
-			split = "WHOLE"
+		if reservationRecord.rollup.Canceled {
+			continue
 		}
 
+		// checkin and checkout dates
+		checkinDate := db.MustNewDate(reservationRecord.StartDate())
+		checkoutDate := db.MustNewDate(reservationRecord.EndDate())
+
+		// check if reservation crosses a year boundary
+		var numRecords int
+		var checkinDateSplit *frdate.Date
+		var checkoutDateSplit *frdate.Date
+		_, firstDateNextYear := checkinDate.YearInOut()
+		if !checkoutDate.After(firstDateNextYear) {
+			numRecords = 1
+		} else {
+			numRecords = 2
+			checkinDateSplit = firstDateNextYear
+			checkoutDateSplit = checkoutDate
+			checkoutDate = firstDateNextYear
+			if checkoutDate.Year()-checkinDate.Year() > 1 {
+				return nil, errors.New("Cannot export reservation that crosses more than 1 year")
+			}
+		}
+
+		// get basic information about the reservation
 		author := reservationRecord.Author().Nickname()
 		reservedFor := reservationRecord.ReservedFor().Nickname()
 		purchaseDate := db.MustNewDateTime(reservationRecord.UpdateDateTime())
+		id := reservationRecord.ReservationID()
 
-		// calculate number of days
-		days := checkoutDate.Sub(checkinDate)
-		checkinYear := checkinDate.Year()
-
-		// get the reservation rate
+		// get the reservation rate at the time of making the reservation
 		eventSettings, _ := property.Settings(&settingsArgs{MaxVersion: &reservationRecord.rollup.EventVersion})
 		var rateType string
 		var rate int32
 		if reservationRecord.Member() {
-			rateType = "NONMEMBER"
+			rateType = "MEMBER"
 			rate = eventSettings.memberRateInternal()
 		} else {
 			rateType = "NONMEMBER"
 			rate = eventSettings.nonMemberRateInternal()
 		}
-		total := days * int(rate)
-
-		id := reservationRecord.ReservationID()
 
 		record := []string{}
 		record = append(record, reservedFor)
-		record = append(record, strconv.Itoa(checkinYear))
+		record = append(record, strconv.Itoa(checkinDate.Year()))
 		record = append(record, checkinDate.ToString())
 		record = append(record, checkoutDate.ToString())
-		record = append(record, strconv.Itoa(days))
 		record = append(record, rateType)
-		record = append(record, strconv.Itoa(int(rate)))
-		record = append(record, strconv.Itoa(total))
+		record = append(record, currencyToString(int(rate)))
+		record = append(record, strconv.Itoa(checkoutDate.Sub(checkinDate)))
+		record = append(record, currencyToString(int(rate)*checkoutDate.Sub(checkinDate)))
 		record = append(record, author)
+		record = append(record, strconv.Itoa(purchaseDate.ToDate().Year()))
 		record = append(record, purchaseDate.ToDate().ToString())
-		record = append(record, split)
 		record = append(record, id)
 		records = append(records, record)
+
+		if numRecords > 1 {
+			record = []string{}
+			record = append(record, reservedFor)
+			record = append(record, strconv.Itoa(checkinDateSplit.Year()))
+			record = append(record, checkinDateSplit.ToString())
+			record = append(record, checkoutDateSplit.ToString())
+			record = append(record, rateType)
+			record = append(record, currencyToString(int(rate)))
+			record = append(record, strconv.Itoa(checkoutDateSplit.Sub(checkinDateSplit)))
+			record = append(record, currencyToString(int(rate)*checkoutDateSplit.Sub(checkinDateSplit)))
+			record = append(record, author)
+			record = append(record, strconv.Itoa(purchaseDate.ToDate().Year()))
+			record = append(record, purchaseDate.ToDate().ToString())
+			record = append(record, id)
+			records = append(records, record)
+		}
 	}
 
 	// write the ledger attachment
@@ -225,6 +253,13 @@ func (r *Resolver) exportReservations(ctx context.Context, property *PropertyRes
 
 	return &attachment, err
 
+}
+
+func currencyToString(value int) string {
+	p := strconv.Itoa(value)
+	index := len(p) - 2
+	q := p[:index] + "." + p[index:]
+	return q
 }
 
 func eventName(event LedgerEvent) string {

@@ -15,7 +15,7 @@ func NewEmailSender() platform.SendMail {
 }
 
 func (r *sendMailImpl) Send(ctx context.Context, emailMessage *platform.EmailMessage) error {
-	logging.LogErrorf("email sent to local platform: %+v", emailMessage)
+	logging.LogDebugf("email sent to local platform with subject %v", emailMessage.Subject)
 
 	return nil
 }
