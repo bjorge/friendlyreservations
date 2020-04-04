@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/bjorge/friendlyreservations/frdate"
+	"github.com/bjorge/friendlyreservations/models"
 
 	"github.com/bjorge/friendlyreservations/utilities"
 
@@ -54,6 +55,11 @@ func (r *Resolver) exportCSVInternal(ctx context.Context, property *PropertyReso
 		return nil, err
 	}
 
+	paymentsAttachment, err := r.exportPayments(ctx, property, me)
+	if err != nil {
+		return nil, err
+	}
+
 	sender := fmt.Sprintf("%s <%s>", utilities.SystemName, utilities.SystemEmail)
 	to := []string{fmt.Sprintf("%s <%s>", me.Nickname(), me.Email())}
 
@@ -62,7 +68,7 @@ func (r *Resolver) exportCSVInternal(ctx context.Context, property *PropertyReso
 		To:          to,
 		Subject:     "CSV export",
 		Body:        "Attached are the CSV files",
-		Attachments: []platform.EmailAttachment{*ledgersAttachment, *reservationsAttachment},
+		Attachments: []platform.EmailAttachment{*ledgersAttachment, *reservationsAttachment, *paymentsAttachment},
 	}
 
 	return msg, err
@@ -250,6 +256,64 @@ func (r *Resolver) exportReservations(ctx context.Context, property *PropertyRes
 	//attachment.ContentID = utilities.NewGuid()
 	attachment.Data = stream.Bytes()
 	attachment.Name = "reservations.csv"
+
+	return &attachment, err
+
+}
+
+func (r *Resolver) exportPayments(ctx context.Context, property *PropertyResolver, me *UserResolver) (*platform.EmailAttachment, error) {
+
+	// get the setting to find the property timezone
+	settings, _ := property.Settings(&settingsArgs{})
+	db := frdate.MustNewDateBuilder(settings.Timezone())
+
+	// get the ledgers
+	ledgers, _ := property.Ledgers(&ledgersArgs{})
+
+	var records [][]string
+
+	records = append(records, []string{"member", "year", "date", "amount", "type", "description"})
+	for _, ledgerRecord := range ledgers {
+		member := ledgerRecord.User()
+		for _, item := range ledgerRecord.Records() {
+			if member.IsSystem() {
+				continue
+			}
+
+			updateBalanceInput, ok := (*item.rollup.VersionedEvent).(*models.UpdateBalanceInput)
+			if !ok {
+				continue
+			}
+
+			date := db.MustNewDateTime(item.EventDateTime()).ToDate()
+
+			record := []string{}
+			record = append(record, member.Nickname())
+			record = append(record, strconv.Itoa(date.Year()))
+			record = append(record, date.ToString())
+			record = append(record, currencyToString(int(updateBalanceInput.Amount)))
+			record = append(record, string(item.Event()))
+			record = append(record, updateBalanceInput.Description)
+			records = append(records, record)
+		}
+	}
+
+	// write the ledger attachment
+	stream := &bytes.Buffer{}
+	w := csv.NewWriter(stream)
+	w.WriteAll(records) // calls Flush internally
+
+	Logger.LogDebugf("CSV payments:\n%+v", string(stream.Bytes()))
+
+	err := w.Error()
+	if err != nil {
+		return nil, err
+	}
+
+	attachment := platform.EmailAttachment{}
+	//attachment.ContentID = utilities.NewGuid()
+	attachment.Data = stream.Bytes()
+	attachment.Name = "payments.csv"
 
 	return &attachment, err
 

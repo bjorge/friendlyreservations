@@ -3,6 +3,8 @@ package frapi
 import (
 	"fmt"
 
+	"github.com/bjorge/friendlyreservations/platform"
+
 	"github.com/bjorge/friendlyreservations/models"
 )
 
@@ -14,6 +16,8 @@ type LedgerRollup struct {
 	EventDateTime string
 	Balance       int32
 	Amount        int32
+
+	VersionedEvent *platform.VersionedEvent
 
 	EventVersion int32
 }
@@ -32,6 +36,9 @@ func (r *PropertyResolver) rollupLedgers() {
 
 		for _, event := range r.property.Events {
 
+			// make a copy of the event for reference
+			currentEvent := event
+
 			switch ledgerEvent := event.(type) {
 
 			case *models.NewUserInput:
@@ -44,6 +51,7 @@ func (r *PropertyResolver) rollupLedgers() {
 				record.EventDateTime = ledgerEvent.CreateDateTime
 				record.EventVersion = ledgerEvent.EventVersion
 				record.Event = startLedgerEvent
+				record.VersionedEvent = &currentEvent
 
 				r.addRollup(record.UserID, record, ledgerRollupType)
 
@@ -63,6 +71,7 @@ func (r *PropertyResolver) rollupLedgers() {
 				record.EventDateTime = reservation.CreateDateTime()
 				record.EventVersion = ledgerEvent.EventVersion
 				record.Event = reservationLedgerEvent
+				record.VersionedEvent = &currentEvent
 
 				r.addRollup(record.UserID, &record, ledgerRollupType)
 
@@ -84,6 +93,7 @@ func (r *PropertyResolver) rollupLedgers() {
 				record.EventDateTime = reservation.UpdateDateTime()
 				record.EventVersion = ledgerEvent.EventVersion
 				record.Event = cancelReservationLedgerEvent
+				record.VersionedEvent = &currentEvent
 
 				r.addRollup(record.UserID, &record, ledgerRollupType)
 
@@ -103,6 +113,8 @@ func (r *PropertyResolver) rollupLedgers() {
 					record.Amount = -1 * ledgerEvent.Amount
 					record.Balance -= ledgerEvent.Amount
 				}
+
+				record.VersionedEvent = &currentEvent
 
 				record.EventDateTime = ledgerEvent.CreateDateTime
 				record.EventVersion = ledgerEvent.EventVersion
@@ -147,6 +159,8 @@ func (r *PropertyResolver) rollupLedgers() {
 					}
 
 				}
+
+				record.VersionedEvent = &currentEvent
 
 				record.EventDateTime = ledgerEvent.CreateDateTime
 				record.EventVersion = ledgerEvent.EventVersion

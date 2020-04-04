@@ -3,6 +3,7 @@ runtime: go111
 handlers:
 - url: /(.*)
   script: auto
+  secure: always
 
 env_variables:
   # see config.yaml in root directory for basic field descriptions
@@ -19,7 +20,7 @@ env_variables:
   PLATFORM_AUTH_COOKIE_HASH: 'put cookie hash here'
   PLATFORM_SECURE: 'true'
   # PLATFORM_CORS_ORIGIN_URI: 'http://localhost:3000'
-  PLATFORM_SESSION_DURATION: '60m'
+  PLATFORM_SESSION_DURATION: '1440m'
   PLATFORM_DESTINATION_URI: 'PUT APPSPOT URI HERE'
 
   # the datastore/memcache namespace
