@@ -21,12 +21,15 @@ const (
 
 // MembershipRollupRecord is the rollup record for membership, exported for memcache
 type MembershipRollupRecord struct {
-	RestrictionID   string
-	InDate          string
-	OutDate         string
-	PrePayStartDate string
-	Users           map[string]MembershipState
-	EventVersion    int32
+	RestrictionID      string
+	InDate             string
+	OutDate            string
+	PrePayStartDate    string
+	GracePeriodOutDate string
+	Users              map[string]MembershipState
+	EventVersion       int32
+	Description        string
+	Amount             int32
 }
 
 // GetEventVersion returns the version of the rollup record
@@ -50,12 +53,15 @@ func (r *PropertyResolver) rollupMembershipStatus() {
 
 				if rollupEvent.Membership != nil {
 					rollup := &MembershipRollupRecord{
-						RestrictionID:   rollupEvent.RestrictionId,
-						Users:           make(map[string]MembershipState),
-						EventVersion:    rollupEvent.EventVersion,
-						InDate:          rollupEvent.Membership.InDate,
-						OutDate:         rollupEvent.Membership.OutDate,
-						PrePayStartDate: rollupEvent.Membership.PrePayStartDate,
+						RestrictionID:      rollupEvent.RestrictionId,
+						Users:              make(map[string]MembershipState),
+						EventVersion:       rollupEvent.EventVersion,
+						InDate:             rollupEvent.Membership.InDate,
+						OutDate:            rollupEvent.Membership.OutDate,
+						PrePayStartDate:    rollupEvent.Membership.PrePayStartDate,
+						GracePeriodOutDate: rollupEvent.Membership.GracePeriodOutDate,
+						Description:        rollupEvent.Description,
+						Amount:             rollupEvent.Membership.Amount,
 					}
 
 					r.addRollup(rollupEvent.RestrictionId, rollup, membershipStatusRollupType)
@@ -71,8 +77,11 @@ func (r *PropertyResolver) rollupMembershipStatus() {
 					next.RestrictionID = last.RestrictionID
 					next.InDate = last.InDate
 					next.OutDate = last.OutDate
+					next.Description = last.Description
+					next.Amount = last.Amount
 
 					next.PrePayStartDate = last.PrePayStartDate
+					next.GracePeriodOutDate = last.GracePeriodOutDate
 					next.Users = make(map[string]MembershipState)
 					for user, status := range last.Users {
 						next.Users[user] = status

@@ -60,6 +60,11 @@ func (r *Resolver) exportCSVInternal(ctx context.Context, property *PropertyReso
 		return nil, err
 	}
 
+	membershipsAttachment, err := r.exportMemberships(ctx, property, me)
+	if err != nil {
+		return nil, err
+	}
+
 	sender := fmt.Sprintf("%s <%s>", utilities.SystemName, utilities.SystemEmail)
 	to := []string{fmt.Sprintf("%s <%s>", me.Nickname(), me.Email())}
 
@@ -68,7 +73,7 @@ func (r *Resolver) exportCSVInternal(ctx context.Context, property *PropertyReso
 		To:          to,
 		Subject:     "CSV export",
 		Body:        "Attached are the CSV files",
-		Attachments: []platform.EmailAttachment{*ledgersAttachment, *reservationsAttachment, *paymentsAttachment},
+		Attachments: []platform.EmailAttachment{*ledgersAttachment, *reservationsAttachment, *paymentsAttachment, *membershipsAttachment},
 	}
 
 	return msg, err
@@ -261,13 +266,66 @@ func (r *Resolver) exportReservations(ctx context.Context, property *PropertyRes
 
 }
 
+func (r *Resolver) exportMemberships(ctx context.Context, property *PropertyResolver, me *UserResolver) (*platform.EmailAttachment, error) {
+	// get the setting to find the property timezone
+	// settings, _ := property.Settings(&settingsArgs{})
+	// db := frdate.MustNewDateBuilder(settings.Timezone())
+
+	// get the memberships
+	memberships, _ := property.Memberships(&membershipsArgs{})
+
+	var records [][]string
+
+	records = append(records, []string{"member", "state", "description", "rate", "purchased", "prepay date", "checkin date", "checkout date", "grace period date"})
+	for _, membershipRecord := range memberships {
+
+		for _, membershipState := range membershipRecord.MembershipStates() {
+			amountPurchased := int32(0)
+			if membershipState.State() == string(PURCHASED) {
+				amountPurchased = membershipRecord.Amount()
+			}
+			record := []string{}
+			record = append(record, membershipState.User().Nickname())
+			record = append(record, membershipState.State())
+			record = append(record, membershipRecord.Description())
+			record = append(record, currencyToString(int(membershipRecord.Amount())))
+			record = append(record, currencyToString(int(amountPurchased)))
+			record = append(record, membershipRecord.PrePayStartDate())
+			record = append(record, membershipRecord.InDate())
+			record = append(record, membershipRecord.OutDate())
+			record = append(record, membershipRecord.GracePeriodOutDate())
+			records = append(records, record)
+		}
+
+	}
+
+	// write the memberships attachment
+	stream := &bytes.Buffer{}
+	w := csv.NewWriter(stream)
+	w.WriteAll(records) // calls Flush internally
+
+	Logger.LogDebugf("CSV memberships:\n%+v", string(stream.Bytes()))
+
+	err := w.Error()
+	if err != nil {
+		return nil, err
+	}
+
+	attachment := platform.EmailAttachment{}
+	attachment.Data = stream.Bytes()
+	attachment.Name = "memberships.csv"
+
+	return &attachment, err
+
+}
+
 func (r *Resolver) exportPayments(ctx context.Context, property *PropertyResolver, me *UserResolver) (*platform.EmailAttachment, error) {
 
 	// get the setting to find the property timezone
 	settings, _ := property.Settings(&settingsArgs{})
 	db := frdate.MustNewDateBuilder(settings.Timezone())
 
-	// get the ledgers
+	// get the payments
 	ledgers, _ := property.Ledgers(&ledgersArgs{})
 
 	var records [][]string
@@ -298,7 +356,7 @@ func (r *Resolver) exportPayments(ctx context.Context, property *PropertyResolve
 		}
 	}
 
-	// write the ledger attachment
+	// write the payments attachment
 	stream := &bytes.Buffer{}
 	w := csv.NewWriter(stream)
 	w.WriteAll(records) // calls Flush internally
@@ -320,6 +378,15 @@ func (r *Resolver) exportPayments(ctx context.Context, property *PropertyResolve
 }
 
 func currencyToString(value int) string {
+	if value == 0 {
+		return "0.00"
+	}
+	if value < 10 {
+		return "0.0" + strconv.Itoa(value)
+	}
+	if value < 100 {
+		return "0." + strconv.Itoa(value)
+	}
 	p := strconv.Itoa(value)
 	index := len(p) - 2
 	q := p[:index] + "." + p[index:]

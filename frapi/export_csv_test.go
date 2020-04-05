@@ -19,6 +19,12 @@ func TestExportCSV(t *testing.T) {
 	paymentAmount := int32(200)
 	property = createPayment(ctx, t, resolver, property, paymentAmount, true, property.EventVersion())
 
+	property, _, _ = createMembershipRestriction(ctx, t, resolver, property, today)
+
+	usersStatus, _ := property.MembershipStatusConstraints(&membershipStatusConstraintsArgs{UserID: &userID})
+
+	property = updateMembership(ctx, t, resolver, property, usersStatus[0].Memberships()[0].Info().RestrictionID(), me.UserID(), true, "update current")
+
 	t.Logf("TestExportCSV: create the csv files")
 	msg, err := resolver.exportCSVInternal(ctx, property, me)
 	if err != nil {
