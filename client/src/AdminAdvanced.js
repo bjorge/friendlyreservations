@@ -24,6 +24,8 @@ query PropertySettings(
         eventVersion
         updateSettingsConstraints {
             allowPropertyDelete
+            allowPropertyExportBackup
+            allowPropertyExportCSV
         }
     }
 }
@@ -88,13 +90,11 @@ class AdminAdvanced extends Component {
                             <div>
                                 {error && <ErrorModal error={error} />}
                                 <Export showModal={this.state.showExportModal} exitModal={this.turnOffModals} />
-                                <Button color="link" style={buttonStyle} onClick={() => this.displayExportModal()}>Export Backup</Button>
-                                <br />
+                                {property.updateSettingsConstraints.allowPropertyExportBackup && <div><Button color="link" style={buttonStyle} onClick={() => this.displayExportModal()}>Export Backup</Button><br /></div>}
                                 <ExportCSV showModal={this.state.showExportCSVModal} exitModal={this.turnOffModals} />
-                                <Button color="link" style={buttonStyle} onClick={() => this.displayExportCSVModal()}>Export CSV</Button>
-                                <br />
+                                {property.updateSettingsConstraints.allowPropertyExportCSV && <div><Button color="link" style={buttonStyle} onClick={() => this.displayExportCSVModal()}>Export CSV</Button><br /></div>}
                                 <DeleteProperty showModal={this.state.showDeleteModal} exitModal={this.turnOffModals} />
-                                {property.updateSettingsConstraints.allowPropertyDelete && <Button color="link" style={buttonStyle} onClick={() => this.displayDeleteModal()}>Delete Property</Button>}
+                                {property.updateSettingsConstraints.allowPropertyDelete && <div><Button color="link" style={buttonStyle} onClick={() => this.displayDeleteModal()}>Delete Property</Button><br /></div>}
                             </div>
                         )
                     }}

@@ -10,6 +10,8 @@ env_variables:
   DEFAULT_SYSTEM_NAME: 'Friendly Reservations'
   ALLOW_NEW_PROPERTY: 'true'
   # IMPORT_FILE_NAME: 'frdatav1.bin'
+  ALLOW_EXPORT_CSV: 'false'
+  ALLOW_EXPORT_BACKUP: 'false'
   ALLOW_DELETE_PROPERTY: 'true'
   PLATFORM_AUTH_COOKIE_HASH: 'bf1166bda683331d3bdea2c40e599f75'
   PLATFORM_SECURE: 'false'

@@ -11,6 +11,8 @@ env_variables:
   DEFAULT_SYSTEM_NAME: 'Friendly Reservations Trial'
   ALLOW_NEW_PROPERTY: 'true'
   # IMPORT_FILE_NAME: 'frdatav1.bin'
+  ALLOW_EXPORT_CSV: 'false'
+  ALLOW_EXPORT_BACKUP: 'false'
   ALLOW_DELETE_PROPERTY: 'true'
 
   # main trial settings

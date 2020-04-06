@@ -18,6 +18,12 @@ var AllowNewProperty bool
 // AllowDeleteProperty enables a property to be deleted
 var AllowDeleteProperty bool
 
+// AllowExportCSV enables property data to be exported
+var AllowExportCSV bool
+
+// AllowExportBackup enables property backup to be exported
+var AllowExportBackup bool
+
 // ImportFileName has the name of a file to import
 var ImportFileName string
 
@@ -35,6 +41,8 @@ func init() {
 	SystemName = config.GetConfig("DEFAULT_SYSTEM_NAME")
 	//TestUserEmail = config.GetConfig("TEST_USER_EMAIL")
 	AllowNewProperty = config.GetConfig("ALLOW_NEW_PROPERTY") == "true"
+	AllowExportCSV = config.GetConfig("ALLOW_EXPORT_CSV") == "true"
+	AllowExportBackup = config.GetConfig("ALLOW_EXPORT_BACKUP") == "true"
 	AllowDeleteProperty = config.GetConfig("ALLOW_DELETE_PROPERTY") == "true"
 	ImportFileName = config.GetConfig("IMPORT_FILE_NAME")
 	SendMailDisabled = config.GetConfig("SEND_MAIL_DISABLED") == "true"

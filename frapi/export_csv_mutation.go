@@ -26,9 +26,19 @@ func (r *Resolver) ExportCSV(ctx context.Context, args *struct {
 		return nil, err
 	}
 
+	// check if export csv is allowed
+	constraints, err := property.UpdateSettingsConstraints(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !constraints.AllowPropertyExportCSV() {
+		return nil, errors.New("settings constraints do not allow export csv files")
+	}
+
 	// check the input values
 	if !me.IsAdmin() {
-		return nil, errors.New("only admins can export")
+		return nil, errors.New("only admins can export csv files")
 	}
 
 	// create the email message for the csv export

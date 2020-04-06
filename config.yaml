@@ -6,6 +6,10 @@ DEFAULT_SYSTEM_NAME: 'Friendly Reservations'
 ALLOW_NEW_PROPERTY: 'true'
 # an exported property file to be imported for troubleshooting and testing
 # IMPORT_FILE_NAME: 'frdatav1.bin'
+# allow a property admin to export property data as csv files
+ALLOW_EXPORT_CSV: 'false'
+# allow a property admin to export property backup as a binary file
+ALLOW_EXPORT_BACKUP: 'false'
 # allow a property admin to delete the property 
 ALLOW_DELETE_PROPERTY: 'true'
 # set auth cookie hash to at least 32 byte value (better 64)

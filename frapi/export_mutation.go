@@ -28,6 +28,16 @@ func (r *Resolver) Export(ctx context.Context, args *struct {
 		return nil, err
 	}
 
+	// check if export backup is allowed
+	constraints, err := property.UpdateSettingsConstraints(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !constraints.AllowPropertyExportBackup() {
+		return nil, errors.New("settings constraints do not allow export backup")
+	}
+
 	// check the input values
 	if !me.IsAdmin() {
 		return nil, errors.New("only admins can export")

@@ -27,6 +27,8 @@ type UpdateSettingsConstraints {
 	balanceReminderIntervalDaysMax: Int!
 	allowNewProperty: Boolean!
 	allowPropertyImport: Boolean!
+	allowPropertyExportCSV: Boolean!
+	allowPropertyExportBackup: Boolean!
 	allowPropertyDelete: Boolean!
 	trialOn: Boolean!
 	trialDays: Int!
@@ -132,6 +134,16 @@ func (r *UpdateSettingsConstraints) AllowPropertyDelete() bool {
 // AllowPropertyImport is true if import of a property is allowed
 func (r *UpdateSettingsConstraints) AllowPropertyImport() bool {
 	return utilities.ImportFileName != ""
+}
+
+// AllowPropertyExportCSV is true if export of property data is allowed
+func (r *UpdateSettingsConstraints) AllowPropertyExportCSV() bool {
+	return utilities.AllowExportCSV
+}
+
+// AllowPropertyExportBackup is true if export of property backup is allowed
+func (r *UpdateSettingsConstraints) AllowPropertyExportBackup() bool {
+	return utilities.AllowExportBackup
 }
 
 // TrialOn is true if the site is setup for trial properties only
