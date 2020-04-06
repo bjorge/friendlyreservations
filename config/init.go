@@ -25,7 +25,11 @@ func init() {
 	// check if the config exists in the local directory
 	file, err := os.Open(fileName)
 	if err != nil {
-		log.LogDebugf("The config file %v does not exist, use environment variables instead", fileName)
+		dir, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		log.LogDebugf("The config file %v does not exist in directory %v, use environment variables instead", fileName, dir)
 		return
 	}
 

@@ -1,0 +1,24 @@
+# the system user email for email updates to members
+DEFAULT_SYSTEM_EMAIL: 'noreply@friendlyreservations.com'
+# the default name of the system user
+DEFAULT_SYSTEM_NAME: 'Friendly Reservations'
+# allow a user to create a new property
+ALLOW_NEW_PROPERTY: 'true'
+# an exported property file to be imported for troubleshooting and testing
+# IMPORT_FILE_NAME: 'frdatav1.bin'
+# allow a property admin to delete the property 
+ALLOW_DELETE_PROPERTY: 'true'
+# set auth cookie hash to at least 32 byte value (better 64)
+PLATFORM_AUTH_COOKIE_HASH: 'bf1166bda683331d3bdea2c40e599f75'
+# in production set secure to true, false on local host development
+PLATFORM_SECURE: 'false'
+# for "npm start" client development  set uri of npm server, otherwise comment out the line for a spa build
+# PLATFORM_CORS_ORIGIN_URI: 'http://localhost:3000'
+# auth cookie session duration
+PLATFORM_SESSION_DURATION: '60m'
+# the host uri (include scheme and optionally port)
+PLATFORM_DESTINATION_URI: 'http://localhost:8080'
+# uncomment the following two lines to redirect the user to a new site
+# REDIRECT_URL: 'https://new web site url here'
+# REDIRECT_LABEL: 'new web site label here'
+
