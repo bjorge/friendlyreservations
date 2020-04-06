@@ -15,7 +15,7 @@ The appengine directory contains the code to run the server in GAE
 		member gql playground: http://localhost:8080/memberschema
 		admin gql playground: http://localhost:8080/adminschema
 	##### Running in appengine ######
-		to run in gcloud, do the following in the cloud shell of appengine.google.com:
+		to run in gcloud, do the following in the cloud shell of console.cloud.google.com:
 			clone friendlyrervations into the cloud shell
 			in the client directory run: npm install; npm run build
 			(one time) gcloud app deploy index.yaml
@@ -27,7 +27,7 @@ The appengine directory contains the code to run the server in GAE
 		start a g suite account with google with a single noreply@<yourdomain> account
 		get a domain <yourdomain> from google for the account if you don't have it already
 		transfer the domain to your new g suite account (if not already there)
-		go to appengine.google.com to setup a test project
+		go to console.cloud.google.com to setup a test project
 		signup for free $300 trial (if available)
 		go to appengine settings for project, set max daily spending limit and authorized email as noreply@<yourdomain>
 		otherwise the logs will show:
