@@ -27,7 +27,7 @@ The project is a work in progress but is currenty in live use.
     (run)
     go build && ./friendlyreservations
 
-to install and run in appengine see [gae instructions](../master/appengine/doc.go)
+to install and run in appengine see [gae instructions](../master/gae_main/doc.go)
 
 ## architectural features
 
