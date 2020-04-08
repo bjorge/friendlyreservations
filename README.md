@@ -39,7 +39,7 @@ to install and run in appengine see [gae instructions](../master/gae_main/doc.go
 - secure authentication cookies
 - easy cors setup, for example for react client development (ex. npm start)
 - platform (ex gae, aws) abstracted behind interface calls in platform package
-- an appengine implentation is included, which uses google oauth for authentication
+- an appengine implementation is included, which uses google oauth for authentication
 
 ## implementation features
 
