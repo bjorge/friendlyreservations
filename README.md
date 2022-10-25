@@ -6,6 +6,7 @@ The underlying architecture uses an Event Sourcing design pattern where only Gra
 
 The project is a work in progress but is currenty in live use.
 
+<!--
 ## try it out (requires gmail login)
 
 - [Live demo site](https://trial.friendlyreservations.org/)
@@ -14,6 +15,7 @@ The project is a work in progress but is currenty in live use.
   - [member](https://trial.friendlyreservations.org/memberschema)
   - [admin](https://trial.friendlyreservations.org/adminschema)
 - [Recorded demo](https://youtu.be/5C7mCkCO6qk)
+-->
 
 ## install and run it
 
